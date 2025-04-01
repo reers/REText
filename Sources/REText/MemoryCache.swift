@@ -142,8 +142,8 @@ fileprivate final class LinkedList<Key: Hashable, Value> {
 }
 
 
-// MARK: - TextCache
-public final class TextCache<Key: Hashable, Value>: @unchecked Sendable {
+// MARK: - MemoryCache
+public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     // MARK: - Properties
     
     /// The name of the cache. Default is nil.
@@ -190,11 +190,11 @@ public final class TextCache<Key: Hashable, Value>: @unchecked Sendable {
     
     /// A block to be executed when the app receives a memory warning.
     /// The default value is nil.
-    public var didReceiveMemoryWarningBlock: ((TextCache) -> Void)?
+    public var didReceiveMemoryWarningBlock: ((MemoryCache) -> Void)?
     
     /// A block to be executed when the app enter background.
     /// The default value is nil.
-    public var didEnterBackgroundBlock: ((TextCache) -> Void)?
+    public var didEnterBackgroundBlock: ((MemoryCache) -> Void)?
     
     /// If `true`, the key-value pair will be released on main thread, otherwise on
     /// background thread. Default is false.
@@ -541,7 +541,7 @@ public final class TextCache<Key: Hashable, Value>: @unchecked Sendable {
     }
 }
 
-extension TextCache: CustomStringConvertible {
+extension MemoryCache: CustomStringConvertible {
     public var description: String {
         if let name = name {
             return "<\(type(of: self)): \(Unmanaged.passUnretained(self).toOpaque())> (\(name))"
