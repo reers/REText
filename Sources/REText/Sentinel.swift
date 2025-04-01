@@ -21,11 +21,11 @@
 
 import os.lock
 
-public final class Sentinel {
+final class Sentinel {
     private var counter: Int64 = 0
     private var lock = os_unfair_lock()
     
-    public func increase() -> Int64 {
+    func increase() -> Int64 {
         os_unfair_lock_lock(&lock)
         defer { os_unfair_lock_unlock(&lock) }
         
@@ -33,7 +33,7 @@ public final class Sentinel {
         return counter
     }
     
-    public var value: Int64 {
+    var value: Int64 {
         os_unfair_lock_lock(&lock)
         defer { os_unfair_lock_unlock(&lock) }
         return counter
