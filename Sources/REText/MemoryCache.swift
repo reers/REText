@@ -452,7 +452,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 }
                 os_unfair_lock_unlock(&lock)
             } else {
-                usleep(10 * 1000) // 10 ms
+                usleep(10 * 1000)
             }
         }
         
@@ -489,7 +489,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 }
                 os_unfair_lock_unlock(&lock)
             } else {
-                usleep(10 * 1000) // 10 ms
+                usleep(10 * 1000)
             }
         }
         
@@ -527,7 +527,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 }
                 os_unfair_lock_unlock(&lock)
             } else {
-                usleep(10 * 1000) // 10 ms
+                usleep(10 * 1000)
             }
         }
         
@@ -535,7 +535,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
             let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
             let holderCopy = holder
             releaseQueue.async {
-                _ = holderCopy.count
+                _ = holderCopy
             }
         }
     }
