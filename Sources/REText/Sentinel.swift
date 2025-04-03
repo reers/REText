@@ -57,7 +57,7 @@ private final class LockCounterImpl {
     }
 }
 
-final class Sentinel {
+final class Sentinel: @unchecked Sendable {
 
     #if canImport(Synchronization)
     private let implementation: AnyObject
@@ -76,7 +76,8 @@ final class Sentinel {
         self.implementation = LockCounterImpl()
         #endif
     }
-
+    
+    @discardableResult
     func increase() -> Int64 {
         #if canImport(Synchronization)
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
