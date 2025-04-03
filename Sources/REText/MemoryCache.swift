@@ -129,7 +129,7 @@ fileprivate final class LinkedList<Key: Hashable, Value> {
         tail = nil
         
         if releaseAsynchronously {
-            let queue: DispatchQueue = releaseOnMainThread ? .main : .global(qos: .background)
+            let queue: DispatchQueue = releaseOnMainThread ? .main : .global(qos: .utility)
             queue.async { [holder] in
                 _ = holder
             }
@@ -320,7 +320,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
         if linkedList.totalCount > countLimit {
             if let node = linkedList.removeTail() {
                 if linkedList.releaseAsynchronously {
-                    let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
+                    let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .utility)
                     releaseQueue.async {
                         _ = node
                     }
@@ -343,7 +343,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
             linkedList.remove(node)
             
             if linkedList.releaseAsynchronously {
-                let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
+                let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .utility)
                 releaseQueue.async {
                     _ = node
                 }
@@ -411,7 +411,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     private func trimRecursively() {
         DispatchQueue
-            .global(qos: .background)
+            .global(qos: .utility)
             .asyncAfter(deadline: .now() + autoTrimInterval) { [weak self] in
                 guard let self else { return }
                 trimInBackground()
@@ -457,7 +457,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
         }
         
         if !holder.isEmpty {
-            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
+            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .utility)
             let holderCopy = holder
             releaseQueue.async {
                 _ = holderCopy.count
@@ -494,7 +494,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
         }
         
         if !holder.isEmpty {
-            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
+            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .utility)
             let holderCopy = holder
             releaseQueue.async {
                 _ = holderCopy.count
@@ -532,7 +532,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
         }
         
         if !holder.isEmpty {
-            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .background)
+            let releaseQueue: DispatchQueue = linkedList.releaseOnMainThread ? .main : .global(qos: .utility)
             let holderCopy = holder
             releaseQueue.async {
                 _ = holderCopy
