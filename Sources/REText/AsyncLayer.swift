@@ -22,11 +22,10 @@
 
 import UIKit
 import QuartzCore
-import stdatomic_h
 
 // MARK: - AsyncLayerDisplayTask
 
-public class AsyncLayerDisplayTask {
+public class AsyncLayerDisplayTask: @unchecked Sendable {
     /// Whether the render code is executed in background. Default is true.
     public var displaysAsynchronously: Bool = true
     
@@ -61,7 +60,7 @@ public protocol AsyncLayerDelegate: AnyObject {
 
 // MARK: - AsyncLayer
 
-public class AsyncLayer: CALayer {
+public class AsyncLayer: CALayer, @unchecked Sendable {
     private var sentinel: Sentinel = Sentinel()
     
     private static var releaseQueue: DispatchQueue {
@@ -133,7 +132,7 @@ public class AsyncLayer: CALayer {
             task.willDisplay?(self)
             let sentinel = self.sentinel
             let value = sentinel.value
-            let isCancelled: () -> Bool = { value != sentinel.value }
+            let isCancelled: @Sendable () -> Bool = { value != sentinel.value }
             let backgroundColor = (opaque && self.backgroundColor != nil) ? self.backgroundColor : nil
             
             RenderQueuePool.next().async {
@@ -172,7 +171,6 @@ public class AsyncLayer: CALayer {
                     }
                     return
                 }
-                
                 DispatchQueue.main.async {
                     if isCancelled() {
                         task.didDisplay?(self, false)
