@@ -57,7 +57,7 @@ private final class LockCounterImpl {
     }
 }
 
-final class Sentinel: @unchecked Sendable {
+public final class Sentinel: @unchecked Sendable {
 
     #if canImport(Synchronization)
     private let implementation: AnyObject
