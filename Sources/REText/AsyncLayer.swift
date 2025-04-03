@@ -255,3 +255,197 @@ enum RenderQueuePool {
         return queues[index]
     }
 }
+
+
+
+// AsyncLayer with swift concurrency
+
+/*
+ public class AsyncLayer: CALayer, @unchecked Sendable {
+     private var sentinel: Sentinel = Sentinel()
+     
+     private static var releaseQueue: DispatchQueue {
+         return .global(qos: .utility)
+     }
+     
+     // MARK: - Override Methods
+     public override init() {
+         super.init()
+         contentsScale = REText.screenScale
+     }
+     
+     public override init(layer: Any) {
+         super.init(layer: layer)
+         contentsScale = REText.screenScale
+     }
+     
+     required public init?(coder: NSCoder) {
+         super.init(coder: coder)
+         contentsScale = REText.screenScale
+     }
+     
+     deinit {
+         sentinel.increase()
+     }
+     
+     public override func setNeedsDisplay() {
+         _cancelAsyncDisplay()
+         super.setNeedsDisplay()
+     }
+     
+     public override func display() {
+         super.contents = super.contents
+         _display()
+     }
+     
+     // MARK: - Private Methods
+     
+     private func _display() {
+         guard let delegate = delegate as? AsyncLayerDelegate else { return }
+         let task = delegate.newAsyncDisplayTask()
+         let async = task.displaysAsynchronously
+         
+         if task.display == nil {
+             task.willDisplay?(self)
+             self.contents = nil
+             task.didDisplay?(self, true)
+             return
+         }
+         
+         let opaque = isOpaque
+         let scale = contentsScale
+         let size = bounds.size
+         
+         if size.width < REText.onePixel || size.height < REText.onePixel {
+             task.willDisplay?(self)
+             
+             if let image = maybeCast(contents, to: CGImage.self) {
+                 contents = nil
+                 Self.releaseQueue.async {
+                     _ = image
+                 }
+             }
+             task.didDisplay?(self, true)
+             return
+         }
+         
+         if async {
+             task.willDisplay?(self)
+             let sentinel = self.sentinel
+             let value = sentinel.value
+             let isCancelled: @Sendable () -> Bool = { value != sentinel.value }
+             let backgroundColor = (opaque && self.backgroundColor != nil) ? self.backgroundColor : nil
+             
+             Task(priority: .high) {
+                 await RenderActorPool.next().render {
+                     if isCancelled() {
+                         _ = backgroundColor
+                         return
+                     }
+                     
+                     let format = UIGraphicsImageRendererFormat()
+                     format.opaque = opaque
+                     format.scale = scale
+                     let renderer = UIGraphicsImageRenderer(size: size, format: format)
+                     
+                     let image = renderer.image { rendererContext in
+                         let context = rendererContext.cgContext
+                         
+                         if opaque {
+                             context.saveGState()
+                             if let backgroundColor {
+                                 context.setFillColor(backgroundColor)
+                             } else {
+                                 context.setFillColor(UIColor.white.cgColor)
+                             }
+                             context.addRect(.init(origin: .zero, size: size))
+                             context.fillPath()
+                             context.restoreGState()
+                         }
+                         
+                         task.display?(context, size, isCancelled)
+                     }
+                     _ = backgroundColor
+                     
+                     if isCancelled() {
+                         await MainActor.run {
+                             task.didDisplay?(self, false)
+                         }
+                         return
+                     }
+                     await MainActor.run {
+                         if isCancelled() {
+                             task.didDisplay?(self, false)
+                         } else {
+                             self.contents = image.cgImage
+                             task.didDisplay?(self, true)
+                         }
+                     }
+                 }
+             }
+         } else {
+             sentinel.increase()
+             task.willDisplay?(self)
+             
+             let format = UIGraphicsImageRendererFormat()
+             format.opaque = opaque
+             format.scale = scale
+             let renderer = UIGraphicsImageRenderer(size: size, format: format)
+             
+             let image = renderer.image { rendererContext in
+                 let context = rendererContext.cgContext
+                 
+                 if opaque {
+                     context.saveGState()
+                     if let backgroundColor = self.backgroundColor {
+                         context.setFillColor(backgroundColor)
+                     } else {
+                         context.setFillColor(UIColor.white.cgColor)
+                     }
+                     context.addRect(.init(origin: .zero, size: size))
+                     context.fillPath()
+                     context.restoreGState()
+                 }
+                 
+                 task.display?(context, size, { return false })
+             }
+             
+             self.contents = image.cgImage
+             task.didDisplay?(self, true)
+         }
+     }
+     
+     private func _cancelAsyncDisplay() {
+         sentinel.increase()
+     }
+ }
+
+ // MARK: - RenderActorPool
+
+ actor RenderActor {
+     func render(_ task: @escaping @Sendable () async -> Void) async {
+         await task()
+     }
+ }
+
+ enum RenderActorPool {
+     private static let maxActorCount = 8
+     
+     private static let actorCount: Int = {
+         let processors = ProcessInfo.processInfo.activeProcessorCount
+         return max(1, min(processors, maxActorCount))
+     }()
+     
+     private static let actors: [RenderActor] = {
+         (0..<actorCount).map { _ in RenderActor() }
+     }()
+     
+     private static let counter = Sentinel()
+     
+     static func next() -> RenderActor {
+         let currentCounterValue = counter.increase()
+         let index = Int(currentCounterValue % Int64(actorCount))
+         return actors[index]
+     }
+ }
+*/
