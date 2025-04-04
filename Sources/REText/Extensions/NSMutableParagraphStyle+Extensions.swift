@@ -96,9 +96,16 @@ public extension NSMutableParagraphStyle {
             style.paragraphSpacingBefore = paragraphSpacingBefore
         }
         
-        var tabStops: CFArray?
-        if CTParagraphStyleGetValueForSpecifier(ctStyle, .tabStops, MemoryLayout<CFArray?>.size, &tabStops),
-           let tabArray = tabStops as? [CTTextTab] {
+        var tabStops: CFArray? = nil
+        let hasTabs = withUnsafeMutablePointer(to: &tabStops) { cfArrayPtr -> Bool in
+            return CTParagraphStyleGetValueForSpecifier(
+                ctStyle,
+                .tabStops,
+                MemoryLayout<CFArray?>.size,
+                cfArrayPtr
+            )
+        }
+        if hasTabs, let tabArray = tabStops as? [CTTextTab] {
             style.tabStops = tabArray.map { ctTab in
                 let alignment = NSTextAlignment(CTTextTabGetAlignment(ctTab))
                 let location = CTTextTabGetLocation(ctTab)
