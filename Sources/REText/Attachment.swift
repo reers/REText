@@ -22,6 +22,35 @@
 
 import UIKit
 
+public enum Content: Hashable {
+    case image(UIImage)
+    case view(UIView)
+    case layer(CALayer)
+    
+    @MainActor
+    var size: CGSize {
+        switch self {
+        case .image(let image): return image.size
+        case .view(let view): return view.bounds.size
+        case .layer(let layer): return layer.bounds.size
+        }
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        switch self {
+        case .image(let image):
+            hasher.combine(0)
+            hasher.combine(image)
+        case .view(let view):
+            hasher.combine(1)
+            hasher.combine(ObjectIdentifier(view))
+        case .layer(let layer):
+            hasher.combine(2)
+            hasher.combine(ObjectIdentifier(layer))
+        }
+    }
+}
+
 open class Attachment: NSTextAttachment, @unchecked Sendable {
     
     open var verticalAligment: VerticalAlignment = .center
@@ -130,5 +159,42 @@ open class Attachment: NSTextAttachment, @unchecked Sendable {
         default:
             break
         }
+    }
+}
+
+extension Attachment {
+    
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(super.hash)
+        if let content = content {
+            hasher.combine(content)
+        }
+        hasher.combine(verticalAligment)
+        hasher.combine(contentMode.rawValue)
+        hasher.combine(contentSize.width)
+        hasher.combine(contentSize.height)
+        hasher.combine(bounds.origin.x)
+        hasher.combine(bounds.origin.y)
+        hasher.combine(bounds.size.width)
+        hasher.combine(bounds.size.height)
+        hasher.combine(contentInsets.top)
+        hasher.combine(contentInsets.left)
+        hasher.combine(contentInsets.bottom)
+        hasher.combine(contentInsets.right)
+        return hasher.finalize()
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard self !== object as AnyObject? else { return true }
+        guard let other = object as? Attachment else { return false }
+        guard super.isEqual(other) else { return false }
+        
+        return verticalAligment == other.verticalAligment
+            && contentMode == other.contentMode
+            && contentSize == other.contentSize
+            && bounds == other.bounds
+            && contentInsets == other.contentInsets
+            && content == other.content
     }
 }

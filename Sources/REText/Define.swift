@@ -28,17 +28,3 @@ public enum VerticalAlignment {
     case bottom
 }
 
-public enum Content: Equatable {
-    case image(UIImage)
-    case view(UIView)
-    case layer(CALayer)
-    
-    @MainActor
-    var size: CGSize {
-        switch self {
-        case .image(let image): return image.size
-        case .view(let view): return view.bounds.size
-        case .layer(let layer): return layer.bounds.size
-        }
-    }
-}
