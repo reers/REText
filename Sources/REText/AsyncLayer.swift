@@ -118,7 +118,7 @@ public class AsyncLayer: CALayer, @unchecked Sendable {
         if size.width < REText.onePixel || size.height < REText.onePixel {
             task.willDisplay?(self)
             
-            if let image = maybeCast(contents, to: CGImage.self) {
+            if let image = castToCGImage(contents) {
                 contents = nil
                 Self.releaseQueue.async {
                     _ = image
@@ -319,7 +319,7 @@ enum RenderQueuePool {
          if size.width < REText.onePixel || size.height < REText.onePixel {
              task.willDisplay?(self)
              
-             if let image = maybeCast(contents, to: CGImage.self) {
+             if let image = castToCGImage(contents) {
                  contents = nil
                  Self.releaseQueue.async {
                      _ = image

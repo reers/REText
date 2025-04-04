@@ -20,10 +20,18 @@
 //  THE SOFTWARE.
 
 import CoreGraphics
+import CoreText
 
-func maybeCast<T>(_ value: T, to cfType: CGImage.Type) -> CGImage? {
-    guard CFGetTypeID(value as CFTypeRef) == cfType.typeID else {
+func castToCGImage<T>(_ value: T) -> CGImage? {
+    guard CFGetTypeID(value as CFTypeRef) == CGImage.typeID else {
         return nil
     }
     return (value as! CGImage)
+}
+
+func castToCTParagraphStyle<T>(_ value: T) -> CTParagraphStyle? {
+    guard CFGetTypeID(value as CFTypeRef) == CTParagraphStyleGetTypeID() else {
+        return nil
+    }
+    return (value as! CTParagraphStyle)
 }
