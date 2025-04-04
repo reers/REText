@@ -51,7 +51,7 @@ public enum Content: Hashable {
     }
 }
 
-open class Attachment: NSTextAttachment, @unchecked Sendable {
+open class TextAttachment: NSTextAttachment, @unchecked Sendable {
     
     open var verticalAligment: VerticalAlignment = .center
     open var contentMode: UIView.ContentMode = .scaleToFill
@@ -162,11 +162,10 @@ open class Attachment: NSTextAttachment, @unchecked Sendable {
     }
 }
 
-extension Attachment {
+extension TextAttachment {
     
     open override var hash: Int {
         var hasher = Hasher()
-        hasher.combine(super.hash)
         if let content = content {
             hasher.combine(content)
         }
@@ -186,9 +185,8 @@ extension Attachment {
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
-        guard self !== object as AnyObject? else { return true }
-        guard let other = object as? Attachment else { return false }
-        guard super.isEqual(other) else { return false }
+        if self === object as AnyObject? { return true }
+        guard let other = object as? TextAttachment else { return false }
         
         return verticalAligment == other.verticalAligment
             && contentMode == other.contentMode
