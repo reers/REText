@@ -73,12 +73,12 @@ extension TextBackground {
         guard let other = object as? TextBackground else { return false }
         
         return abs(borderWidth - other.borderWidth) < .ulpOfOne
-            && borderColor == other.borderColor
+            && objectIsEqual(borderColor, other.borderColor)
             && borderEdges == other.borderEdges
             && lineJoin == other.lineJoin
             && lineCap == other.lineCap
             && insets == other.insets
             && abs(cornerRadius - other.cornerRadius) < .ulpOfOne
-            && fillColor == other.fillColor
+            && objectIsEqual(fillColor, other.fillColor)
     }
 }

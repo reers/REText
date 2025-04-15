@@ -15,3 +15,8 @@ func syncOnMain<T: Sendable>(_ action: @MainActor () throws -> T) rethrows -> T 
         return try DispatchQueue.main.sync { try action() }
     }
 }
+
+@inline(__always)
+func objectIsEqual(_ obj: NSObject?, _ otherObj: NSObject?) -> Bool {
+    return obj === otherObj || obj?.isEqual(otherObj) == true
+}

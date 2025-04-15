@@ -49,6 +49,19 @@ public enum Content: Hashable {
             hasher.combine(ObjectIdentifier(layer))
         }
     }
+    
+    public static func == (lhs: Content, rhs: Content) -> Bool {
+        switch (lhs, rhs) {
+        case (.image(let lhsImage), .image(let rhsImage)):
+            return lhsImage == rhsImage
+        case (.view(let lhsView), .view(let rhsView)):
+            return lhsView === rhsView
+        case (.layer(let lhsLayer), .layer(let rhsLayer)):
+            return lhsLayer === rhsLayer
+        default:
+            return false
+        }
+    }
 }
 
 open class TextAttachment: NSTextAttachment, @unchecked Sendable {
