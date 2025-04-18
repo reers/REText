@@ -30,13 +30,87 @@ public extension REText {
     static let onePixel: CGFloat = 1.0 / screenScale
 }
 
+public extension CGFloat {
+    /// Convert point to pixel.
+    @inlinable
+    func toPixel() -> CGFloat {
+        return self * REText.screenScale
+    }
+    
+    /// Convert pixel to point.
+    @inlinable
+    static func fromPixel(_ value: CGFloat) -> CGFloat {
+        return value / REText.screenScale
+    }
+    
+    /// Floor point value for pixel-aligned
+    @inlinable
+    func pixelFloor() -> CGFloat {
+        let scale = REText.screenScale
+        return floor(self * scale) / scale
+    }
+    
+    /// Round point value for pixel-aligned
+    @inlinable
+    func pixelRound() -> CGFloat {
+        let scale = REText.screenScale
+        return Darwin.round(self * scale) / scale
+    }
+    
+    /// Ceil point value for pixel-aligned
+    @inlinable
+    func pixelCeil() -> CGFloat {
+        let scale = REText.screenScale
+        return ceil((self - .ulpOfOne) * scale) / scale
+    }
+    
+    /// Round point value to .5 pixel for path stroke (odd pixel line width pixel-aligned)
+    @inlinable
+    func pixelHalf() -> CGFloat {
+        let scale = REText.screenScale
+        return (floor(self * scale) + 0.5) / scale
+    }
+}
+
 public extension CGPoint {
+    
+    /// Floor point value for pixel-aligned
+    @inlinable
+    func pixelFloor() -> CGPoint {
+        let scale = REText.screenScale
+        return CGPoint(
+            x: floor(x * scale) / scale,
+            y: floor(y * scale) / scale
+        )
+    }
+    
+    /// Round point value for pixel-aligned
     @inlinable
     func pixelRound() -> CGPoint {
         let scale = REText.screenScale
         return CGPoint(
             x: round(x * scale) / scale,
             y: round(y * scale) / scale
+        )
+    }
+    
+    /// Ceil point value for pixel-aligned
+    @inlinable
+    func pixelCeil() -> CGPoint {
+        let scale = REText.screenScale
+        return CGPoint(
+            x: ceil(x * scale) / scale,
+            y: ceil(y * scale) / scale
+        )
+    }
+    
+    /// Round point value to .5 pixel for path stroke (odd pixel line width pixel-aligned)
+    @inlinable
+    func pixelHalf() -> CGPoint {
+        let scale = REText.screenScale
+        return CGPoint(
+            x: (floor(x * scale) + 0.5) / scale,
+            y: (floor(y * scale) + 0.5) / scale
         )
     }
 }
@@ -111,6 +185,7 @@ public extension CGSize {
 
 public extension CGRect {
     
+    /// Round point value for pixel-aligned
     @inlinable
     func pixelRound() -> CGRect {
         let origin = origin.pixelRound()
@@ -118,6 +193,40 @@ public extension CGRect {
             x: origin.x + size.width,
             y: origin.y + size.height
         ).pixelRound()
+        
+        return CGRect(
+            x: origin.x,
+            y: origin.y,
+            width: corner.x - origin.x,
+            height: corner.y - origin.y
+        )
+    }
+    
+    /// Ceil point value for pixel-aligned
+    @inlinable
+    func pixelCeil() -> CGRect {
+        let origin = origin.pixelFloor()
+        let corner = CGPoint(
+            x: origin.x + size.width,
+            y: origin.y + size.height
+        ).pixelCeil()
+        
+        return CGRect(
+            x: origin.x,
+            y: origin.y,
+            width: corner.x - origin.x,
+            height: corner.y - origin.y
+        )
+    }
+    
+    /// Round point value to .5 pixel for path stroke (odd pixel line width pixel-aligned)
+    @inlinable
+    func pixelHalf() -> CGRect {
+        let origin = origin.pixelHalf()
+        let corner = CGPoint(
+            x: origin.x + size.width,
+            y: origin.y + size.height
+        ).pixelHalf()
         
         return CGRect(
             x: origin.x,
