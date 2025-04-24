@@ -25,10 +25,10 @@ import UIKit
 class TextTailTruncater: TextTruncating {
     
     private var truncationAttributedString: NSAttributedString?
-    private var avoidTailTruncationSet: NSCharacterSet?
+    private var avoidTailTruncationSet: CharacterSet?
     private var truncationUsedRect: CGRect?
     
-    required init(truncationAttributedString: NSAttributedString?, avoidTailTruncationSet: NSCharacterSet?) {
+    required init(truncationAttributedString: NSAttributedString?, avoidTailTruncationSet: CharacterSet?) {
         self.truncationAttributedString = truncationAttributedString
         self.avoidTailTruncationSet = avoidTailTruncationSet
     }
@@ -69,9 +69,8 @@ class TextTailTruncater: TextTruncating {
         let leftAligned = lastLineRect.minX == lastLineUsedRect.minX || !rtlWritingDirection
         
         if truncationUsedRect == nil, let truncationAttributedString = truncationAttributedString {
-            let maxSize = CGSize(width: 0x100000, height: 0x100000)
             let truncationUsedRect = truncationAttributedString.boundingRect(
-                with: maxSize,
+                with: REText.containerMaxSize,
                 options: .usesLineFragmentOrigin,
                 context: nil
             )
@@ -153,7 +152,7 @@ class TextTailTruncater: TextTruncating {
             let rangeToSearch = NSRange(location: startingSearchIndex, length: endingSearchIndex - startingSearchIndex)
             
             rangeOfLastVisibleAvoidedChars = (textStorage.string as NSString).rangeOfCharacter(
-                from: avoidTailTruncationSet as CharacterSet,
+                from: avoidTailTruncationSet,
                 options: .backwards,
                 range: rangeToSearch
             )

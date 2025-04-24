@@ -24,7 +24,7 @@ class TextRenderAttributes: NSObject {
 
     /// An array of UIBezierPath objects representing exclusion paths.
     /// Default is nil.
-    let exclusionPaths: [UIBezierPath]?
+    let exclusionPaths: [UIBezierPath]
 
     /// The attributed string to use for truncation.
     /// Default is nil.
@@ -35,7 +35,7 @@ class TextRenderAttributes: NSObject {
         attributedText: NSAttributedString?,
         lineBreakMode: NSLineBreakMode,
         maximumNumberOfLines: Int,
-        exclusionPaths: [UIBezierPath]?,
+        exclusionPaths: [UIBezierPath],
         truncationAttributedText: NSAttributedString?
     ) {
         self.attributedText = attributedText
@@ -93,7 +93,7 @@ class TextRenderAttributesBuilder {
 
     /// An array of UIBezierPath objects representing exclusion paths.
     /// Default is nil.
-    var exclusionPaths: [UIBezierPath]? = nil
+    var exclusionPaths: [UIBezierPath] = []
 
     /// The attributed string to use for truncation.
     /// Default is nil.

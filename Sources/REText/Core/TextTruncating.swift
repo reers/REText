@@ -35,7 +35,7 @@ protocol TextTruncating {
     /// - Parameters:
     ///   - truncationAttributedString: The attributed string to be displayed at the truncation position
     ///   - avoidTailTruncationSet: Character set to avoid truncating at the tail
-    init(truncationAttributedString: NSAttributedString?, avoidTailTruncationSet: NSCharacterSet?)
+    init(truncationAttributedString: NSAttributedString?, avoidTailTruncationSet: CharacterSet?)
     
     /// Actually do the truncation.
     /// - Parameters:
