@@ -30,7 +30,7 @@ class TextMagnifier: UIView {
     var snapshotSize: CGSize { fatalError("Subclass must override") }
     
     /// The image in magnifier (readwrite).
-    var snapshot: UIImage? { fatalError("Subclass must override") }
+    var snapshot: UIImage?
     
     /// The coordinate based view.
     weak var hostView: UIView?
