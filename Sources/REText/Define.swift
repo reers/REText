@@ -21,7 +21,7 @@
 
 import UIKit
 
-enum VerticalAlignment {
+public enum VerticalAlignment {
     case top
     case center
     case bottom
