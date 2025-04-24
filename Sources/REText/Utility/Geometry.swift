@@ -124,6 +124,13 @@ public extension CGPoint {
             y: (floor(y * scale) + 0.5) / scale
         )
     }
+    
+    @inlinable
+    func distance(to point: CGPoint) -> CGFloat {
+        let dx = self.x - point.x
+        let dy = self.y - point.y
+        return sqrt(dx * dx + dy * dy)
+    }
 }
 
 public extension CGSize {
@@ -245,6 +252,11 @@ public extension CGRect {
             width: corner.x - origin.x,
             height: corner.y - origin.y
         )
+    }
+    
+    @inlinable
+    var center: CGPoint {
+        return CGPoint(x: midX, y: midY)
     }
 }
 
