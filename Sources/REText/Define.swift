@@ -21,10 +21,26 @@
 
 import UIKit
 
-/// Text vertical alignment
-public enum VerticalAlignment {
+enum VerticalAlignment {
     case top
     case center
     case bottom
 }
 
+enum TextItemInteraction {
+    case possible
+    case tap
+    case longPress
+}
+
+enum TextSelectionGrabberType {
+    case none
+    case start
+    case end
+}
+
+enum TextMenuType {
+    case none
+    case system
+    case custom
+}
