@@ -24,6 +24,7 @@ import UIKit
 
 extension NSAttributedString.Key {
     public static let background = NSAttributedString.Key(rawValue: "RETextBackgroundAttributeName")
+    public static let blockBackground = NSAttributedString.Key(rawValue: "RETextBlockBackgroundAttributeName")
 }
 
 public class TextBackground: NSObject {

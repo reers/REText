@@ -25,5 +25,5 @@ import UIKit
 struct TextBackgroundInfo {
     let background: TextBackground
     let rects: [CGRect]
-    let characterRanges: [NSRange]
+    let characterRanges: NSRange
 }
