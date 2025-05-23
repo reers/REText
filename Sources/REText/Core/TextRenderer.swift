@@ -133,15 +133,8 @@ class TextRenderer {
         context.withLockedTextKitComponents { layoutManager, textStorage, textContainer in
             let glyphsToShow = layoutManager.glyphRange(for: textContainer)
             if glyphsToShow.location != NSNotFound {
-//                attachmentsInfo = layoutManager.attachmentsInfo(
-//                    forGlyphRange: glyphsToShow,
-//                    inTextContainer: textContainer
-//                )
-//                
-//                backgroundsInfo = layoutManager.backgroundsInfo(
-//                    forGlyphRange: glyphsToShow,
-//                    inTextContainer: textContainer
-//                )
+                attachmentsInfo = layoutManager.attachmentsInfo(forGlyphRange: glyphsToShow, in: textContainer)
+                backgroundsInfo = layoutManager.backgroundsInfo(forGlyphRange: glyphsToShow, in: textContainer)
             }
         }
         
@@ -171,6 +164,7 @@ class TextRenderer {
     /// - Parameters:
     ///   - point: The point indicates where to start drawing.
     ///   - debugOption: How to drawing debug.
+    @MainActor
     func draw(at point: CGPoint, debugOption: TextDebugOption?) {
         let glyphsToShow = self.glyphsToShow
         let attachmentsInfo = self.attachmentsInfo
@@ -180,27 +174,27 @@ class TextRenderer {
             if glyphsToShow.location != NSNotFound {
                 layoutManager.drawBackground(forGlyphRange: glyphsToShow, at: point)
                 
-//                if let backgroundsInfo = backgroundsInfo {
-//                    layoutManager.drawBackground(with: backgroundsInfo, at: point)
-//                }
-//                
-//                layoutManager.drawGlyphs(forGlyphRange: glyphsToShow, at: point)
-//                
-//                if let attachmentsInfo = attachmentsInfo {
-//                    layoutManager.drawImageAttachments(
-//                        with: attachmentsInfo,
-//                        at: point,
-//                        in: textContainer
-//                    )
-//                }
-//                
-//                if let debugOption = debugOption {
-//                    layoutManager.drawDebug(
-//                        with: debugOption,
-//                        forGlyphRange: glyphsToShow,
-//                        at: point
-//                    )
-//                }
+                if !backgroundsInfo.isEmpty {
+                    layoutManager.drawBackground(with: backgroundsInfo, at: point)
+                }
+                
+                layoutManager.drawGlyphs(forGlyphRange: glyphsToShow, at: point)
+                
+                if !attachmentsInfo.isEmpty {
+                    layoutManager.drawImageAttachments(
+                        with: attachmentsInfo,
+                        at: point,
+                        in: textContainer
+                    )
+                }
+                
+                if let debugOption = debugOption {
+                    layoutManager.drawDebug(
+                        with: debugOption,
+                        forGlyphRange: glyphsToShow,
+                        at: point
+                    )
+                }
             }
         }
     }
@@ -209,18 +203,19 @@ class TextRenderer {
     /// - Parameters:
     ///   - point: Draw view and layer for given point.
     ///   - referenceTextView: NSAttachment will be drawed to it.
+    @MainActor
     func drawViewAndLayer(at point: CGPoint, referenceTextView: UIView) {
         let glyphsToShow = self.glyphsToShow
         let attachmentsInfo = self.attachmentsInfo
         
         context.withLockedTextKitComponents { layoutManager, textStorage, textContainer in
             if glyphsToShow.location != NSNotFound {
-//                layoutManager.drawViewAndLayerAttachments(
-//                    with: attachmentsInfo,
-//                    at: point,
-//                    in: textContainer,
-//                    textView: referenceTextView
-//                )
+                layoutManager.drawViewAndLayerAttachments(
+                    with: attachmentsInfo,
+                    at: point,
+                    in: textContainer,
+                    textView: referenceTextView
+                )
             }
         }
     }
@@ -369,24 +364,20 @@ extension TextRenderer {
         var resultRange = NSRange(location: NSNotFound, length: 0)
         let string = text as CFString
         let range = CFRange(location: 0, length: text.count)
-        let flag = CFStringTokenizerTokenType.word.rawValue
+        let flag = kCFStringTokenizerUnitWord
         let locale = CFLocaleCopyCurrent()
         let tokenizer = CFStringTokenizerCreate(kCFAllocatorDefault, string, range, flag, locale)
         
         var tokenType = CFStringTokenizerAdvanceToNextToken(tokenizer)
-        
-        while tokenType.rawValue != kCFStringTokenizerTokenNone.rawValue {
+        while tokenType.rawValue != 0 {
             let currentTokenRange = CFStringTokenizerGetCurrentTokenRange(tokenizer)
-            if currentTokenRange.location <= index &&
-               currentTokenRange.location + currentTokenRange.length > index {
+            if currentTokenRange.location <= index
+               && currentTokenRange.location + currentTokenRange.length > index {
                 resultRange = NSRange(location: currentTokenRange.location, length: currentTokenRange.length)
                 break
             }
             tokenType = CFStringTokenizerAdvanceToNextToken(tokenizer)
         }
-        
-        CFRelease(tokenizer)
-        CFRelease(locale)
         
         if resultRange.location == NSNotFound {
             resultRange = NSRange(location: index, length: 1)
@@ -400,10 +391,14 @@ extension TextRenderer {
     /// - Parameter characterRange: The characterRangefor which to return selection rectangles.
     /// - Returns: An array of `TextSelectionRect` objects that encompass the selection.
     /// If not found, the array is empty.
+    @MainActor
     func selectionRects(for characterRange: NSRange) -> [TextSelectionRect] {
-        var selectionRects = [TextSelectionRect]()
+        var selectionRects: [TextSelectionRect] = []
         
-        context.withLockedTextKitComponents { layoutManager, textStorage, textContainer in
+        context.withLockedTextKitComponents {
+            layoutManager,
+            textStorage,
+            textContainer in
             let glyphRange = layoutManager.glyphRange(
                 forCharacterRange: characterRange,
                 actualCharacterRange: nil
@@ -426,11 +421,13 @@ extension TextRenderer {
                     effectiveRange: nil
                 ) as? NSParagraphStyle
                 
-                let selectionRect = TextSelectionRect()
-                selectionRect.rect = rect
-                selectionRect.writingDirection = paragraphStyle?.baseWritingDirection ?? .leftToRight
-                selectionRect.isVertical = textContainer.layoutOrientation == .vertical
-                
+                let selectionRect = TextSelectionRect(
+                    rect: rect,
+                    writingDirection: paragraphStyle?.baseWritingDirection ?? .leftToRight,
+                    containsStart: false,
+                    containsEnd: false,
+                    isVertical: textContainer.layoutOrientation == .vertical
+                )
                 selectionRects.append(selectionRect)
             }
         }
