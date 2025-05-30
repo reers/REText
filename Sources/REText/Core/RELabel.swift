@@ -193,7 +193,6 @@ public extension RELabel {
         
         return suggestSize
     }
-
 }
 
 @MainActor
@@ -223,11 +222,14 @@ open class RELabel: UIView {
     /// The underlying attributed string drawn by the label.
     /// NOTE: If set, the label ignores other properties.
     open var attributedText: NSAttributedString? {
-        didSet {
-            if objectIsEqual(oldValue, attributedText) {
+        get {
+            return _attributedText
+        }
+        set {
+            if objectIsEqual(_attributedText, newValue) {
                 return
             }
-            internalAttributedText = attributedText?.copy() as? NSAttributedString
+            _attributedText = newValue?.copy() as? NSAttributedString
             invalidate()
         }
     }
@@ -238,10 +240,10 @@ open class RELabel: UIView {
     /// Set it to get higher performance.
     open var textRenderer: TextRenderer? {
         didSet {
-            if internalTextRenderer === textRenderer {
+            if _textRenderer === textRenderer {
                 return
             }
-            internalTextRenderer = textRenderer
+            _textRenderer = textRenderer
             invalidate()
         }
     }
@@ -268,14 +270,14 @@ open class RELabel: UIView {
     /// Set a new value to this property also causes the new font to be applied to the entire `attributedText`.
     open var font: UIFont {
         get {
-            return internalFont ?? defaultFont
+            return _font ?? defaultFont
         }
         set {
-            if objectIsEqual(internalFont, newValue) {
+            if objectIsEqual(_font, newValue) {
                 return
             }
-            internalFont = newValue
-            updateAttributedTextAttribute(.font, value: internalFont)
+            _font = newValue
+            updateAttributedTextAttribute(.font, value: _font)
         }
     }
     
@@ -283,14 +285,14 @@ open class RELabel: UIView {
     /// Set a new value to this property also causes the new color to be applied to the entire `attributedText`.
     open var textColor: UIColor {
         get {
-            return internalTextColor ?? defaultTextColor
+            return _textColor ?? defaultTextColor
         }
         set {
-            if objectIsEqual(internalTextColor, newValue) {
+            if objectIsEqual(_textColor, newValue) {
                 return
             }
-            internalTextColor = newValue
-            updateAttributedTextAttribute(.foregroundColor, value: internalTextColor)
+            _textColor = newValue
+            updateAttributedTextAttribute(.foregroundColor, value: _textColor)
         }
     }
     
@@ -334,9 +336,11 @@ open class RELabel: UIView {
             if oldValue == textAlignment {
                 return
             }
-            let attributedText = self.attributedText?.mutableCopy() as? NSMutableAttributedString
-            attributedText?.setAlignment(textAlignment, range: attributedText?.rangeOfAll ?? NSRange())
-            self.attributedText = attributedText
+            if let attributedText {
+                let mutableAttributedText = NSMutableAttributedString(attributedString: attributedText)
+                mutableAttributedText.setAlignment(textAlignment, range: attributedText.rangeOfAll)
+                self.attributedText = mutableAttributedText.copy() as? NSAttributedString
+            }
         }
     }
     
@@ -382,8 +386,6 @@ open class RELabel: UIView {
             setNeedsUpdateContents()
         }
     }
-    
-   
     
     /// Whether or not the text is truncated. It's expensive if text not rendered.
     open var isTruncated: Bool {
@@ -459,9 +461,9 @@ open class RELabel: UIView {
                 return
             }
             let textRect = textRectForBounds(bounds, textSize: currentRenderer?.size ?? .zero)
-            internalExclusionPaths = exclusionPaths
+            _exclusionPaths = exclusionPaths
             
-            internalExclusionPaths?.forEach { path in
+            _exclusionPaths?.forEach { path in
                 path.apply(CGAffineTransform(translationX: -textRect.origin.x, y: -textRect.origin.y))
             }
             invalidate()
@@ -519,12 +521,12 @@ open class RELabel: UIView {
     
     // MARK: - Private Properties
     
-    private var internalAttributedText: NSAttributedString?
-    private var internalTextRenderer: TextRenderer?
-    private var internalFont: UIFont?
-    private var internalTextColor: UIColor?
-    private var internalExclusionPaths: [UIBezierPath]?
-    private var internalTruncationAttributedText: NSAttributedString?
+    private var _attributedText: NSAttributedString?
+    private var _textRenderer: TextRenderer?
+    private var _font: UIFont?
+    private var _textColor: UIColor?
+    private var _exclusionPaths: [UIBezierPath]?
+    private var _truncationAttributedText: NSAttributedString?
     
     private var interactionManager: TextInteractionManager!
     private var selectionView: TextSelectionView?
@@ -593,15 +595,15 @@ open class RELabel: UIView {
     
     open override func sizeThatFits(_ size: CGSize) -> CGSize {
         if let textRenderer = textRenderer {
-            let horizontalValue = textContainerInset.horizontalValue
-            let verticalValue = textContainerInset.verticalValue
-            return CGSize(width: textRenderer.size.width + horizontalValue,
-                         height: textRenderer.size.height + verticalValue)
+            return CGSize(
+                width: textRenderer.size.width + textContainerInset.horizontalValue,
+                height: textRenderer.size.height + textContainerInset.verticalValue
+            )
         }
         
         let renderAttributes = self.renderAttributes
         var size = size
-        if size == bounds.size { // sizeToFit called
+        if size == bounds.size {
             size.height = REText.containerMaxSize.height
         }
         return Self.suggestFrameSize(for: renderAttributes, fitsSize: size, textContainerInset: textContainerInset)
@@ -636,10 +638,7 @@ open class RELabel: UIView {
     // MARK: - Responder
     
     open override var canBecomeFirstResponder: Bool {
-        if !isSelectable {
-            return false
-        }
-        return true
+        return isSelectable
     }
     
     @discardableResult
@@ -673,12 +672,12 @@ open class RELabel: UIView {
     
     // MARK: - UIResponderStandardEditActions
     
-//    public func copy(_ sender: Any?) {
-//        let string = attributedText?.plainText(for: selectedRange)
-//        if let string = string, !string.isEmpty {
-//            UIPasteboard.general.string = string
-//        }
-//    }
+    open override func copy(_ sender: Any?) {
+        let string = attributedText?.plainText(for: selectedRange)
+        if let string = string, !string.isEmpty {
+            UIPasteboard.general.string = string
+        }
+    }
     
     // MARK: - Public Methods
     
@@ -707,12 +706,7 @@ open class RELabel: UIView {
         } else {
             menuType = .system
             UIMenuController.shared.menuItems = menuItems
-            if #available(iOS 13, *) {
-                UIMenuController.shared.showMenu(from: self, rect: targetRect)
-            } else {
-                UIMenuController.shared.setTargetRect(targetRect, in: self)
-                UIMenuController.shared.setMenuVisible(true, animated: true)
-            }
+            UIMenuController.shared.showMenu(from: self, rect: targetRect)
         }
     }
     
@@ -726,11 +720,7 @@ open class RELabel: UIView {
         if let delegate = delegate {
             delegate.labelHideMenu(self)
         } else {
-            if #available(iOS 13, *) {
-                UIMenuController.shared.hideMenu()
-            } else {
-                UIMenuController.shared.setMenuVisible(false, animated: true)
-            }
+            UIMenuController.shared.hideMenu()
         }
     }
     
@@ -772,9 +762,9 @@ open class RELabel: UIView {
     
     private func updateAttributedTextAttribute(_ name: NSAttributedString.Key, value: Any?) {
         guard let attributedText = self.attributedText else { return }
-        let mutableAttributedText = attributedText.mutableCopy() as! NSMutableAttributedString
+        let mutableAttributedText = NSMutableAttributedString(attributedString: attributedText)
         mutableAttributedText.setAttribute(name, value: value, range: mutableAttributedText.rangeOfAll)
-        internalAttributedText = mutableAttributedText.copy() as? NSAttributedString
+        _attributedText = mutableAttributedText.copy() as? NSAttributedString
         
         setNeedsUpdateContents()
         
@@ -896,7 +886,7 @@ open class RELabel: UIView {
     }
     
     private func invalidateTruncationAttributedText() {
-        internalTruncationAttributedText = nil
+        _truncationAttributedText = nil
     }
     
     private func setNeedsUpdateContents() {
@@ -922,6 +912,59 @@ open class RELabel: UIView {
         }
     }
     
+    private func clearAttachmentViewsAndLayers() {
+        for view in attachmentViews {
+            if view.superview == self {
+                view.removeFromSuperview()
+            }
+        }
+        for layer in attachmentLayers {
+            if layer.superlayer == self.layer {
+                layer.removeFromSuperlayer()
+            }
+        }
+        attachmentViews.removeAll()
+        attachmentLayers.removeAll()
+    }
+    
+    private func clearAttachmentViewsAndLayers(with attachmentsInfo: [TextAttachmentInfo]) {
+        for view in attachmentViews {
+            
+            if view.superview == self && !contains(content: view, for: attachmentsInfo) {
+                view.removeFromSuperview()
+            }
+        }
+        for layer in attachmentLayers {
+            if layer.superlayer == self.layer && !contains(content: layer, for: attachmentsInfo) {
+                layer.removeFromSuperlayer()
+            }
+        }
+        attachmentViews.removeAll()
+        attachmentLayers.removeAll()
+    }
+    
+    private func contains(content: Any, for attachmentsInfo: [TextAttachmentInfo]) -> Bool {
+        for info in attachmentsInfo {
+            switch info.attachment.content {
+            case .image(let image):
+                if image === content as AnyObject {
+                    return true
+                }
+            case .layer(let layer):
+                if layer === content as AnyObject {
+                    return true
+                }
+            case .view(let view):
+                if view === content as AnyObject {
+                    return true
+                }
+            default:
+                continue
+            }
+        }
+        return false
+    }
+    
     // MARK: - Text Selection
     
     private func updateSelectionView() {
@@ -943,18 +986,29 @@ open class RELabel: UIView {
         
         let startGrabberHeight: CGFloat
         if selectionRects.count > 1 {
-            let startLineFragmentRect = renderer.lineFragmentRect(forCharacterAt: selectedRange.location, effectiveRange: nil)
+            let startLineFragmentRect = renderer.lineFragmentRect(
+                forCharacterAt: selectedRange.location,
+                effectiveRange: nil
+            )
             startGrabberHeight = startLineFragmentRect.height
         } else {
-            let startLineFragmentUsedRect = renderer.lineFragmentUsedRect(forCharacterAt: selectedRange.location, effectiveRange: nil)
+            let startLineFragmentUsedRect = renderer.lineFragmentUsedRect(
+                forCharacterAt: selectedRange.location,
+                effectiveRange: nil
+            )
             startGrabberHeight = startLineFragmentUsedRect.height
         }
         
-        let endLineFragmentUsedRect = renderer.lineFragmentUsedRect(forCharacterAt: NSMaxRange(selectedRange) - 1, effectiveRange: nil)
+        let endLineFragmentUsedRect = renderer.lineFragmentUsedRect(
+            forCharacterAt: NSMaxRange(selectedRange) - 1,
+            effectiveRange: nil
+        )
         
-        selectionView.updateSelectionRects(selectionRects,
-                                         startGrabberHeight: startGrabberHeight,
-                                         endGrabberHeight: endLineFragmentUsedRect.height)
+        selectionView.updateSelectionRects(
+            selectionRects,
+            startGrabberHeight: startGrabberHeight,
+            endGrabberHeight: endLineFragmentUsedRect.height
+        )
     }
     
     open var isMenuVisible: Bool {
@@ -1051,14 +1105,14 @@ fileprivate extension RELabel {
 extension RELabel: TextInteractable {
     /// Composed by truncationAttributedToken and additionalTruncationAttributedMessage.
     public var truncationAttributedText: NSAttributedString {
-        if internalTruncationAttributedText == nil {
-            internalTruncationAttributedText = Self.truncationAttributedText(
+        if _truncationAttributedText == nil {
+            _truncationAttributedText = Self.truncationAttributedText(
                 withTokenAndAdditionalMessage: attributedText,
                 token: truncationAttributedToken,
                 additionalMessage: additionalTruncationAttributedMessage
             )
         }
-        return internalTruncationAttributedText!
+        return _truncationAttributedText!
     }
     
     public func shouldInteractLink(with linkRange: NSRange, for attributedText: NSAttributedString) -> Bool {
@@ -1116,7 +1170,12 @@ extension RELabel: TextInteractable {
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         
         var linkRange = NSRange()
-        _ = renderer.attribute(.link, at: point, effectiveRange: &linkRange, inTruncation: inTruncation)
+        let link = renderer.attribute(.link, at: point, effectiveRange: &linkRange, inTruncation: inTruncation)
+#if DEBUG
+        if linkRange.location != NSNotFound {
+            assert(link is TextLink, "The value for RETextLinkAttributeName must be of type TextLink.")
+        }
+#endif
         return linkRange
     }
     
@@ -1164,7 +1223,10 @@ extension RELabel: TextInteractable {
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         let pointX = min(point.x, renderer.size.width) - 1
         let pointY = min(point.y, renderer.size.height) - 1
-        let adjustedPoint = CGPoint(x: max(pointX, 1), y: max(pointY, 1))
+        let adjustedPoint = CGPoint(
+            x: pointX < 0 ? 1 : pointX,
+            y: pointY < 0 ? 1 : pointY
+        )
         
         return renderer.characterIndex(for: adjustedPoint)
     }
@@ -1226,8 +1288,6 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
         let contentsUptodate = state.contentsUpdated
         let debugOption = self.debugOption
         let attachmentsNeedsUpdate = state.attachmentsNeedsUpdate
-        let attachmentViews = self.attachmentViews
-        let attachmentLayers = self.attachmentLayers
         
         guard let renderer = currentRenderer else {
             return AsyncLayerDisplayTask()
@@ -1270,12 +1330,14 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
                 renderer.drawViewAndLayer(at: point, referenceTextView: self)
                 
                 for info in renderer.attachmentsInfo {
-                    
-//                    if let view = info.attachment.content as? UIView {
-//                        self.attachmentViews.append(view)
-//                    } else if let layer = info.attachment.content as? CALayer {
-//                        self.attachmentLayers.append(layer)
-//                    }
+                    switch info.attachment.content {
+                    case .view(let view):
+                        attachmentViews.append(view)
+                    case .layer(let contentLayer):
+                        attachmentLayers.append(contentLayer)
+                    default:
+                        break
+                    }
                 }
             }
             
@@ -1295,59 +1357,6 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
         }
         
         return task
-    }
-    
-    private func clearAttachmentViewsAndLayers() {
-        for view in attachmentViews {
-            if view.superview == self {
-                view.removeFromSuperview()
-            }
-        }
-        for layer in attachmentLayers {
-            if layer.superlayer == self.layer {
-                layer.removeFromSuperlayer()
-            }
-        }
-        attachmentViews.removeAll()
-        attachmentLayers.removeAll()
-    }
-    
-    private func clearAttachmentViewsAndLayers(with attachmentsInfo: [TextAttachmentInfo]) {
-        for view in attachmentViews {
-            
-            if view.superview == self && !contains(content: view, for: attachmentsInfo) {
-                view.removeFromSuperview()
-            }
-        }
-        for layer in attachmentLayers {
-            if layer.superlayer == self.layer && !contains(content: layer, for: attachmentsInfo) {
-                layer.removeFromSuperlayer()
-            }
-        }
-        attachmentViews.removeAll()
-        attachmentLayers.removeAll()
-    }
-    
-    private func contains(content: Any, for attachmentsInfo: [TextAttachmentInfo]) -> Bool {
-        for info in attachmentsInfo {
-            switch info.attachment.content {
-            case .image(let image):
-                if image === content as AnyObject {
-                    return true
-                }
-            case .layer(let layer):
-                if layer === content as AnyObject {
-                    return true
-                }
-            case .view(let view):
-                if view === content as AnyObject {
-                    return true
-                }
-            default:
-                continue
-            }
-        }
-        return false
     }
 }
 
