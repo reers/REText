@@ -24,6 +24,7 @@ import Foundation
 
 extension NSAttributedString.Key {
     public static let backedString = NSAttributedString.Key(rawValue: "RETextBackedStringAttributeName")
+    public static let highlighted = NSAttributedString.Key(rawValue: "RETextHighlightedAttributeName")
 }
 
 public class TextBackedString: NSObject {
