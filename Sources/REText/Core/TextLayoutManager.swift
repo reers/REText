@@ -43,7 +43,7 @@ class TextLayoutManager: NSLayoutManager {
         if let storage = self.textStorage, let uiFont = storage.attribute(.font, at: charIndex, effectiveRange: nil) as? UIFont {
             ctFont = uiFont as CTFont
         } else {
-            ctFont = UIFont.systemFont(ofSize: 12) as CTFont
+            ctFont = UIFont.systemFont(ofSize: REText.CoreTextDefaultFontSize) as CTFont
         }
         //                                    Glyph Advance
         //                             +-------------------------+

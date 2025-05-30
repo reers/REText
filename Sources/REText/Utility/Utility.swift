@@ -20,3 +20,13 @@ func syncOnMain<T: Sendable>(_ action: @MainActor () throws -> T) rethrows -> T 
 func objectIsEqual(_ obj: NSObject?, _ otherObj: NSObject?) -> Bool {
     return obj === otherObj || obj?.isEqual(otherObj) == true
 }
+
+func arrayIsEqual(_ lhs: [NSObject]?, _ rhs: [NSObject]?) -> Bool {
+    if let lhs, let rhs {
+        return lhs == rhs
+    } else if lhs == nil, rhs == nil {
+        return true
+    } else {
+        return false
+    }
+}

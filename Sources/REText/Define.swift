@@ -21,19 +21,19 @@
 
 import UIKit
 
-public enum VerticalAlignment {
+public enum TextVerticalAlignment {
     case top
     case center
     case bottom
 }
 
-enum TextItemInteraction {
+public enum TextItemInteraction {
     case possible
     case tap
     case longPress
 }
 
-enum TextSelectionGrabberType {
+public enum TextSelectionGrabberType {
     case none
     case start
     case end

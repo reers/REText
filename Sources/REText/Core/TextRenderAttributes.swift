@@ -8,7 +8,7 @@
 import UIKit
 
 /// Represents the immutable rendering attributes for text.
-class TextRenderAttributes: NSObject {
+public class TextRenderAttributes: NSObject {
 
     /// The attributed string to be rendered.
     /// Default is nil.
@@ -49,7 +49,7 @@ class TextRenderAttributes: NSObject {
 
 extension TextRenderAttributes {
 
-    override var hash: Int {
+    public override var hash: Int {
         var hasher = Hasher()
         hasher.combine(attributedText)
         hasher.combine(lineBreakMode)
@@ -59,7 +59,7 @@ extension TextRenderAttributes {
         return hasher.finalize()
     }
 
-    override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if self === object as? AnyObject {
             return true
         }

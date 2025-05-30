@@ -260,6 +260,18 @@ public extension CGRect {
     }
 }
 
+extension UIEdgeInsets {
+    @inline(__always)
+    var horizontalValue: CGFloat {
+        return left + right
+    }
+    
+    @inline(__always)
+    var verticalValue: CGFloat {
+        return top + bottom
+    }
+}
+
 extension REText {
     /// Get CGAffineTransform from two views
     ///
@@ -333,9 +345,9 @@ extension REText {
     /// - Returns: 0 for success, non-zero for failure
     private static func matrixInvert(N: Int32, matrix: inout [Double]) -> Int32 {
         var error: Int32 = 0
-        var pivot_tmp = [Int32](repeating: 0, count: Int(N * N))
+        let pivot_tmp = [Int32](repeating: 0, count: Int(N * N))
         var pivot = pivot_tmp
-        var workspace_tmp = [Double](repeating: 0, count: Int(N * N))
+        let workspace_tmp = [Double](repeating: 0, count: Int(N * N))
         var workspace = workspace_tmp
         
         if N > 6 {

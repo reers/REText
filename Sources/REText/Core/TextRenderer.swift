@@ -8,7 +8,7 @@
 import UIKit
 
 /// TextRenderer - A class to render text with TextKit
-class TextRenderer {
+public class TextRenderer {
     
     /// The render attributes used for rendering.
     let renderAttributes: TextRenderAttributes
@@ -17,7 +17,7 @@ class TextRenderer {
     let constrainedSize: CGSize
     
     /// Stored attachments info and it's useful for drawing.
-    private var attachmentsInfo: [TextAttachmentInfo] = []
+    var attachmentsInfo: [TextAttachmentInfo] = []
     
     // Private properties
     private var context: TextKitContext

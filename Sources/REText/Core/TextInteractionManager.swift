@@ -7,13 +7,14 @@
 
 import UIKit
 
-protocol TextInteractable: NSObjectProtocol {
+@MainActor
+public protocol TextInteractable: NSObjectProtocol {
     
     var attributedText: NSAttributedString? { get }
     
     var textRenderer: TextRenderer? { get set }
     
-    var truncationAttributedText: NSAttributedString? { get }
+    var truncationAttributedText: NSAttributedString { get }
     
     var isSelectable: Bool { get }
     
@@ -35,7 +36,7 @@ protocol TextInteractable: NSObjectProtocol {
     
     func grabberRect(for grabberType: TextSelectionGrabberType) -> CGRect
     
-    func characterIndex(for point: CGPoint) -> UInt
+    func characterIndex(for point: CGPoint) -> Int
     
     func beginSelection(at point: CGPoint)
     
@@ -52,6 +53,7 @@ protocol TextInteractable: NSObjectProtocol {
 
 typealias TextInteractableView = UIView & TextInteractable
 
+@MainActor
 protocol TextInteractionManagerDelegate: NSObjectProtocol {
     func interactionManager(
         _ interactionManager: TextInteractionManager,

@@ -66,7 +66,7 @@ public enum Content: Hashable {
 
 open class TextAttachment: NSTextAttachment, @unchecked Sendable {
     
-    open var verticalAligment: VerticalAlignment = .center
+    open var verticalAligment: TextVerticalAlignment = .center
     open var contentMode: UIView.ContentMode = .scaleToFill
     open var contentSize: CGSize = .zero
     open var contentInsets: UIEdgeInsets = .zero
