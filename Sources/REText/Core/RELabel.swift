@@ -92,6 +92,48 @@ public protocol RELabelDelegate: NSObjectProtocol {
     func labelHideMenu(_ label: RELabel)
 }
 
+public extension RELabelDelegate {
+    func label(
+        _ label: RELabel,
+        shouldInteractWith link: TextLink,
+        for attributedText: NSAttributedString,
+        in range: NSRange
+    ) -> Bool {
+        return true
+    }
+    
+    func label(
+        _ label: RELabel,
+        didInteractWith link: TextLink,
+        for attributedText: NSAttributedString,
+        in range: NSRange,
+        interaction: TextItemInteraction
+    ) {}
+    
+    func label(
+        _ label: RELabel,
+        highlightedTextAttributesWith link: TextLink,
+        for attributedText: NSAttributedString,
+        in range: NSRange
+    ) -> [NSAttributedString.Key: Any]? {
+        return nil
+    }
+    
+    func labelWillBeginSelection(_ label: RELabel, selectedRange: UnsafeMutablePointer<NSRange>) {}
+    
+    func menuItems(for label: RELabel) -> [UIMenuItem]? {
+        return nil
+    }
+    
+    func menuVisible(for label: RELabel) -> Bool {
+        return false
+    }
+    
+    func label(_ label: RELabel, showMenuWith menuItems: [UIMenuItem], targetRect: CGRect) {}
+    
+    func labelHideMenu(_ label: RELabel) {}
+}
+
 public extension RELabel {
     
     /// Composed by truncationAttributedToken and additionalTruncationAttributedMessage.
@@ -1118,7 +1160,7 @@ extension RELabel: TextInteractable {
     public func shouldInteractLink(with linkRange: NSRange, for attributedText: NSAttributedString) -> Bool {
         var shouldInteractLink = true
         if let delegate = delegate {
-            if let value = attributedText.attribute(.link, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
                 shouldInteractLink = delegate.label(self, shouldInteractWith: value, for: attributedText, in: linkRange)
             } else {
                 shouldInteractLink = false
@@ -1133,7 +1175,7 @@ extension RELabel: TextInteractable {
     ) -> [NSAttributedString.Key : Any] {
         var textAttributes = highlightedLinkTextAttributes ?? [:]
         if let delegate = delegate {
-            if let value = attributedText.attribute(.link, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
                 if let attributes = delegate.label(self, highlightedTextAttributesWith: value, for: attributedText, in: linkRange) {
                     textAttributes = attributes
                 }
@@ -1144,7 +1186,7 @@ extension RELabel: TextInteractable {
     
     public func tapLink(with linkRange: NSRange, for attributedText: NSAttributedString) {
         if let delegate = delegate {
-            if let value = attributedText.attribute(.link, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
                 delegate.label(self, didInteractWith: value, for: attributedText, in: linkRange, interaction: .tap)
             }
         }
@@ -1152,7 +1194,7 @@ extension RELabel: TextInteractable {
     
     public func longPressLink(with linkRange: NSRange, for attributedText: NSAttributedString) {
         if let delegate = delegate {
-            if let value = attributedText.attribute(.link, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
                 delegate.label(self, didInteractWith: value, for: attributedText, in: linkRange, interaction: .longPress)
             }
         }
@@ -1170,7 +1212,7 @@ extension RELabel: TextInteractable {
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         
         var linkRange = NSRange()
-        let link = renderer.attribute(.link, at: point, effectiveRange: &linkRange, inTruncation: inTruncation)
+        let link = renderer.attribute(.textLink, at: point, effectiveRange: &linkRange, inTruncation: inTruncation)
 #if DEBUG
         if linkRange.location != NSNotFound {
             assert(link is TextLink, "The value for RETextLinkAttributeName must be of type TextLink.")

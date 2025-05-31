@@ -23,7 +23,7 @@
 import Foundation
 
 extension NSAttributedString.Key {
-    public static let link = NSAttributedString.Key(rawValue: "RETextLinkAttributeName")
+    public static let textLink = NSAttributedString.Key(rawValue: "RETextLinkAttributeName")
 }
 
 /// A class designed to wrap a value intended to be used as the value for an `NSAttributedString` attribute
