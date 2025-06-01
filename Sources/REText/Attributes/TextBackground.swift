@@ -27,22 +27,22 @@ extension NSAttributedString.Key {
     public static let blockBackground = NSAttributedString.Key(rawValue: "RETextBlockBackgroundAttributeName")
 }
 
-public class TextBackground: NSObject {
-    public var borderWidth: CGFloat = 0
-    public var borderColor: UIColor?
-    public var borderEdges: UIRectEdge = .all
-    public var lineJoin: CGLineJoin = .round
-    public var lineCap: CGLineCap = .round
-    public var insets: UIEdgeInsets = .zero
-    public var cornerRadius: CGFloat = 0
-    public var fillColor: UIColor?
+open class TextBackground: NSObject {
+    open var borderWidth: CGFloat = 0
+    open var borderColor: UIColor?
+    open var borderEdges: UIRectEdge = .all
+    open var lineJoin: CGLineJoin = .round
+    open var lineCap: CGLineCap = .round
+    open var insets: UIEdgeInsets = .zero
+    open var cornerRadius: CGFloat = 0
+    open var fillColor: UIColor?
     
     public init(cornerRadius: CGFloat = 0, fillColor: UIColor? = nil) {
         self.cornerRadius = cornerRadius
         self.fillColor = fillColor
     }
     
-    public func backgroundRect(
+    open func backgroundRect(
         for textContainer: NSTextContainer,
         proposedRect: CGRect,
         characterRange: NSRange
@@ -53,7 +53,7 @@ public class TextBackground: NSObject {
 
 extension TextBackground {
     
-    public override var hash: Int {
+    open override var hash: Int {
         var hasher = Hasher()
         hasher.combine(borderWidth)
         hasher.combine(borderColor)
@@ -69,7 +69,7 @@ extension TextBackground {
         return hasher.finalize()
     }
     
-    public override func isEqual(_ object: Any?) -> Bool {
+    open override func isEqual(_ object: Any?) -> Bool {
         if self === object as AnyObject? { return true }
         guard let other = object as? TextBackground else { return false }
         
