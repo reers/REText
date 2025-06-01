@@ -38,7 +38,7 @@ public protocol TextDebugTarget: AnyObject {
 }
 
 /// The debug option for text rendering.
-public class TextDebugOption {
+public final class TextDebugOption: @unchecked Sendable {
 
     public var baselineColor: UIColor?
     public var lineFragmentBorderColor: UIColor?

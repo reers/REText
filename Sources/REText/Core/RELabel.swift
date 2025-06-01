@@ -1329,7 +1329,7 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
         let point = convertPoint(fromTextKit: .zero, forBounds: bounds, textSize: renderer.size)
         
         return AsyncLayerDisplayTask(
-            displaysAsynchronously: true,
+            displaysAsynchronously: displaysAsync,
             willDisplay: { [weak self] layer in
                 guard let self = self else { return }
                 layer.removeAnimation(forKey: Self.asyncFadeAnimationKey)
@@ -1343,7 +1343,7 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
                 if isCancelled() {
                     return
                 }
-                renderer.draw(at: point, debugOption: nil)
+                renderer.draw(at: point, debugOption: debugOption)
             },
             didDisplay: { [weak self] layer, finished in
                 guard let self = self else { return }
