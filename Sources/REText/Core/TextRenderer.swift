@@ -27,10 +27,10 @@ import UIKit
 public class TextRenderer {
     
     /// The render attributes used for rendering.
-    let renderAttributes: TextRenderAttributes
+    public let renderAttributes: TextRenderAttributes
     
     /// The constrained size for rendering.
-    let constrainedSize: CGSize
+    public let constrainedSize: CGSize
     
     /// Stored attachments info and it's useful for drawing.
     var attachmentsInfo: [TextAttachmentInfo] = []
@@ -46,7 +46,7 @@ public class TextRenderer {
     /// - Parameters:
     ///   - renderAttributes: The attributes used for rendering.
     ///   - constrainedSize: The constrained size for rendering.
-    init(renderAttributes: TextRenderAttributes, constrainedSize: CGSize) {
+    public init(renderAttributes: TextRenderAttributes, constrainedSize: CGSize) {
         self.renderAttributes = renderAttributes
         self.constrainedSize = constrainedSize
         

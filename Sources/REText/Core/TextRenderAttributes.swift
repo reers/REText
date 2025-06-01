@@ -28,23 +28,23 @@ public class TextRenderAttributes: NSObject {
 
     /// The attributed string to be rendered.
     /// Default is nil.
-    let attributedText: NSAttributedString?
+    public let attributedText: NSAttributedString?
 
     /// The line break mode to use.
     /// Default is NSLineBreakByTruncatingTail.
-    let lineBreakMode: NSLineBreakMode
+    public let lineBreakMode: NSLineBreakMode
 
     /// The maximum number of lines to render. 0 means no limit.
     /// Default is 1.
-    let maximumNumberOfLines: Int // Changed from NSUInteger to Int
+    public let maximumNumberOfLines: Int // Changed from NSUInteger to Int
 
     /// An array of UIBezierPath objects representing exclusion paths.
     /// Default is nil.
-    let exclusionPaths: [UIBezierPath]
+    public let exclusionPaths: [UIBezierPath]
 
     /// The attributed string to use for truncation.
     /// Default is nil.
-    let truncationAttributedText: NSAttributedString?
+    public let truncationAttributedText: NSAttributedString?
 
     /// Designated initializer.
     fileprivate init(
@@ -93,38 +93,38 @@ extension TextRenderAttributes {
 
 
 /// A mutable builder class for creating TextRenderAttributes instances.
-class TextRenderAttributesBuilder {
+public final class TextRenderAttributesBuilder {
 
     /// The attributed string to be rendered.
     /// Default is nil.
-    var attributedText: NSAttributedString? = nil
+    public var attributedText: NSAttributedString? = nil
 
     /// The line break mode to use.
     /// Default is NSLineBreakByTruncatingTail.
-    var lineBreakMode: NSLineBreakMode = .byTruncatingTail
+    public var lineBreakMode: NSLineBreakMode = .byTruncatingTail
 
     /// The maximum number of lines to render. 0 means no limit.
     /// Default is 1.
-    var maximumNumberOfLines: Int = 1
+    public var maximumNumberOfLines: Int = 1
 
     /// An array of UIBezierPath objects representing exclusion paths.
     /// Default is nil.
-    var exclusionPaths: [UIBezierPath] = []
+    public var exclusionPaths: [UIBezierPath] = []
 
     /// The attributed string to use for truncation.
     /// Default is nil.
     /// Note: You should use TextTruncationAttributedTextWithTokenAndAdditionalMessage() to get it. // Assuming function name also loses prefix
-    var truncationAttributedText: NSAttributedString? = nil
+    public var truncationAttributedText: NSAttributedString? = nil
 
     /// Initializes a new builder with default values.
-    init() {
+    public init() {
         self.lineBreakMode = .byTruncatingTail
         self.maximumNumberOfLines = 1
     }
 
     /// Initializes a builder with values from an existing TextRenderAttributes instance.
     /// - Parameter renderAttributes: The attributes to copy values from.
-    init(renderAttributes: TextRenderAttributes) {
+    public init(renderAttributes: TextRenderAttributes) {
         self.attributedText = renderAttributes.attributedText
         self.exclusionPaths = renderAttributes.exclusionPaths
         self.lineBreakMode = renderAttributes.lineBreakMode
@@ -134,7 +134,7 @@ class TextRenderAttributesBuilder {
 
     /// Builds an immutable TextRenderAttributes instance from the builder's current state.
     /// - Returns: A new TextRenderAttributes instance.
-    func build() -> TextRenderAttributes {
+    public func build() -> TextRenderAttributes {
         return TextRenderAttributes(
             attributedText: self.attributedText,
             lineBreakMode: self.lineBreakMode,
