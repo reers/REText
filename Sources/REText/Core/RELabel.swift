@@ -431,12 +431,12 @@ open class RELabel: UIView {
     
     /// Whether or not the text is truncated. It's expensive if text not rendered.
     open var isTruncated: Bool {
-        return currentRenderer?.isTruncated ?? false
+        return currentRenderer.isTruncated ?? false
     }
     
     /// The text truncation range if text if truncated.
     open var truncationRange: NSRange {
-        return currentRenderer?.truncationRange ?? NSRange(location: NSNotFound, length: 0)
+        return currentRenderer.truncationRange ?? NSRange(location: NSNotFound, length: 0)
     }
     
     /// The maximum number of lines to use for rendering text. Default value is 1.
@@ -502,7 +502,7 @@ open class RELabel: UIView {
             if arrayIsEqual(oldValue, exclusionPaths) {
                 return
             }
-            let textRect = textRectForBounds(bounds, textSize: currentRenderer?.size ?? .zero)
+            let textRect = textRectForBounds(bounds, textSize: currentRenderer.size)
             _exclusionPaths = exclusionPaths
             
             _exclusionPaths?.forEach { path in
@@ -855,7 +855,7 @@ open class RELabel: UIView {
         return attributesBuilder.build()
     }
     
-    private var currentRenderer: TextRenderer? {
+    private var currentRenderer: TextRenderer {
         let hasActiveLink = interactionManager.hasActiveLink
         
         if let textRenderer = textRenderer {
@@ -1019,7 +1019,7 @@ open class RELabel: UIView {
             return
         }
         
-        guard let renderer = currentRenderer else { return }
+        let renderer = currentRenderer
         
         let selectionRects = renderer.selectionRects(for: selectedRange)
         selectionRects.forEach { selectionRect in
@@ -1073,8 +1073,8 @@ open class RELabel: UIView {
 }
 
 fileprivate extension RELabel {
-    static let asyncFadeDuration: TimeInterval = 0.08
-    static let asyncFadeAnimationKey = "contents"
+    nonisolated static let asyncFadeDuration: TimeInterval = 0.08
+    nonisolated static let asyncFadeAnimationKey = "contents"
     static var releaseQueue: DispatchQueue {
         return .global(qos: .background)
     }
@@ -1090,9 +1090,10 @@ fileprivate extension RELabel {
         return cache
     }()
     
-    static func rendererForAttributes(_ attributes: TextRenderAttributes, constrainedSize: CGSize) -> TextRenderer? {
+    static func rendererForAttributes(_ attributes: TextRenderAttributes, constrainedSize: CGSize) -> TextRenderer {
+        var constrainedSize = constrainedSize
         if constrainedSize.width < CGFloat.ulpOfOne || constrainedSize.height < CGFloat.ulpOfOne {
-            return nil
+            constrainedSize = .init(width: 0.1, height: 0.1)
         }
         
         let key = TextRendererKey(attributes: attributes, constrainedSize: constrainedSize)
@@ -1205,9 +1206,7 @@ extension RELabel: TextInteractable {
             return NSRange(location: NSNotFound, length: 0)
         }
         
-        guard let renderer = currentRenderer else {
-            return NSRange(location: NSNotFound, length: 0)
-        }
+        let renderer = currentRenderer
         
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         
@@ -1258,9 +1257,7 @@ extension RELabel: TextInteractable {
     }
     
     public func characterIndex(for point: CGPoint) -> Int {
-        guard let renderer = currentRenderer else {
-            return NSNotFound
-        }
+        let renderer = currentRenderer
         
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         let pointX = min(point.x, renderer.size.width) - 1
@@ -1274,10 +1271,7 @@ extension RELabel: TextInteractable {
     }
     
     public func beginSelection(at point: CGPoint) {
-        guard let renderer = currentRenderer else {
-            return
-        }
-        
+        let renderer = currentRenderer
         let point = convertPoint(toTextKit: point, forBounds: bounds, textSize: renderer.size)
         let characterIndex = renderer.characterIndex(for: point)
         
@@ -1331,74 +1325,73 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
         let debugOption = self.debugOption
         let attachmentsNeedsUpdate = state.attachmentsNeedsUpdate
         
-        guard let renderer = currentRenderer else {
-            return AsyncLayerDisplayTask()
-        }
-        
+        let renderer = currentRenderer
         let point = convertPoint(fromTextKit: .zero, forBounds: bounds, textSize: renderer.size)
         
-        let task = AsyncLayerDisplayTask()
-        task.displaysAsynchronously = displaysAsync
-        
-        task.willDisplay = { [weak self] layer in
-            guard let self = self else { return }
-            
-            layer.removeAnimation(forKey: Self.asyncFadeAnimationKey)
-            
-            if attachmentsNeedsUpdate {
-                self.clearAttachmentViewsAndLayers(with: renderer.attachmentsInfo)
-            }
-        }
-        
-        task.display = { context, size, isCancelled in
-            if isCancelled() {
-                return
-            }
-            renderer.draw(at: point, debugOption: debugOption)
-        }
-        
-        task.didDisplay = { [weak self] layer, finished in
-            guard let self = self else { return }
-            
-            if !finished {
-                self.clearAttachmentViewsAndLayers()
-                return
-            }
-            
-            if attachmentsNeedsUpdate {
-                self.state.attachmentsNeedsUpdate = false
-                
-                let point = self.convertPoint(fromTextKit: .zero, forBounds: bounds, textSize: renderer.size)
-                renderer.drawViewAndLayer(at: point, referenceTextView: self)
-                
-                for info in renderer.attachmentsInfo {
-                    switch info.attachment.content {
-                    case .view(let view):
-                        attachmentViews.append(view)
-                    case .layer(let contentLayer):
-                        attachmentLayers.append(contentLayer)
-                    default:
-                        break
+        return AsyncLayerDisplayTask(
+            displaysAsynchronously: true,
+            willDisplay: { [weak self] layer in
+                guard let self = self else { return }
+                layer.removeAnimation(forKey: Self.asyncFadeAnimationKey)
+                if attachmentsNeedsUpdate {
+                    syncOnMain {
+                        self.clearAttachmentViewsAndLayers(with: renderer.attachmentsInfo)
                     }
                 }
+            },
+            display: { context, size, isCancelled in
+                if isCancelled() {
+                    return
+                }
+                renderer.draw(at: point, debugOption: nil)
+            },
+            didDisplay: { [weak self] layer, finished in
+                guard let self = self else { return }
+                if !finished {
+                    syncOnMain {
+                        self.clearAttachmentViewsAndLayers()
+                    }
+                    return
+                }
+                
+                if attachmentsNeedsUpdate {
+                    syncOnMain {
+                        self.state.attachmentsNeedsUpdate = false
+                        
+                        let point = self.convertPoint(fromTextKit: .zero, forBounds: bounds, textSize: renderer.size)
+                        renderer.drawViewAndLayer(at: point, referenceTextView: self)
+                        
+                        for info in renderer.attachmentsInfo {
+                            switch info.attachment.content {
+                            case .view(let view):
+                                attachmentViews.append(view)
+                            case .layer(let contentLayer):
+                                attachmentLayers.append(contentLayer)
+                            default:
+                                break
+                            }
+                        }
+                    }
+                }
+                
+                if !contentsUptodate {
+                    syncOnMain {
+                        self.state.contentsUpdated = true
+                    }
+                }
+                
+                if fadeForAsync {
+                    let transition = CATransition()
+                    transition.duration = Self.asyncFadeDuration
+                    transition.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                    transition.type = .fade
+                    layer.add(transition, forKey: Self.asyncFadeAnimationKey)
+                }
+                syncOnMain {
+                    self.updateSelectionView()
+                }
             }
-            
-            if !contentsUptodate {
-                self.state.contentsUpdated = true
-            }
-            
-            if fadeForAsync {
-                let transition = CATransition()
-                transition.duration = Self.asyncFadeDuration
-                transition.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                transition.type = .fade
-                layer.add(transition, forKey: Self.asyncFadeAnimationKey)
-            }
-            
-            self.updateSelectionView()
-        }
-        
-        return task
+        )
     }
 }
 

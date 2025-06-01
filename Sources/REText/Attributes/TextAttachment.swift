@@ -133,7 +133,6 @@ open class TextAttachment: NSTextAttachment, @unchecked Sendable {
         return CGRect(origin: CGPoint(x: 0, y: y), size: attachmentSize)
     }
     
-    @MainActor
     open func drawAttachment(
         in textContainer: NSTextContainer,
         textView: UIView?,
@@ -150,24 +149,28 @@ open class TextAttachment: NSTextAttachment, @unchecked Sendable {
         drawAttachment(in: rect, textView: textView)
     }
     
-    @MainActor
     open func drawAttachment(in rect: CGRect, textView: UIView?) {
         switch content {
         case .image(let image):
             image.draw(in: rect)
         case .view(let view):
-            if view.frame != rect {
-                view.frame = rect
+            syncOnMain {
+                if view.frame != rect {
+                    view.frame = rect
+                }
+                if let textView, view.superview != textView {
+                    textView.addSubview(view)
+                }
             }
-            if let textView, view.superview != textView {
-                textView.addSubview(view)
-            }
+            
         case .layer(let layer):
-            if layer.frame != rect {
-                layer.frame = rect
-            }
-            if let textView, layer.superlayer != textView.layer {
-                textView.layer.addSublayer(layer)
+            syncOnMain {
+                if layer.frame != rect {
+                    layer.frame = rect
+                }
+                if let textView, layer.superlayer != textView.layer {
+                    textView.layer.addSublayer(layer)
+                }
             }
         default:
             break

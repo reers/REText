@@ -24,7 +24,7 @@
 import UIKit
 
 /// TextRenderer - A class to render text with TextKit
-public class TextRenderer {
+public class TextRenderer: @unchecked Sendable {
     
     /// The render attributes used for rendering.
     public let renderAttributes: TextRenderAttributes
@@ -180,7 +180,6 @@ public class TextRenderer {
     /// - Parameters:
     ///   - point: The point indicates where to start drawing.
     ///   - debugOption: How to drawing debug.
-    @MainActor
     func draw(at point: CGPoint, debugOption: TextDebugOption?) {
         let glyphsToShow = self.glyphsToShow
         let attachmentsInfo = self.attachmentsInfo

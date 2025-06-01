@@ -20,8 +20,8 @@ class DemoNavigationController: UINavigationController {
         
         fpsLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            fpsLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 64),
-            fpsLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -15)
+            fpsLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 38),
+            fpsLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20)
         ])
     }
 }

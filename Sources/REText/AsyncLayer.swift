@@ -25,13 +25,13 @@ import QuartzCore
 
 // MARK: - AsyncLayerDisplayTask
 
-public class AsyncLayerDisplayTask: @unchecked Sendable {
+public final class AsyncLayerDisplayTask:  Sendable {
     /// Whether the render code is executed in background. Default is true.
-    public var displaysAsynchronously: Bool = true
+    public let displaysAsynchronously: Bool
     
     /// This block will be called before the asynchronous drawing begins.
     /// It will be called on the main thread.
-    public var willDisplay: ((CALayer) -> Void)?
+    public let willDisplay: (@Sendable (CALayer) -> Void)?
     
     /// This block is called to draw the layer's contents.
     /// This block may be called on main thread or background thread,
@@ -41,14 +41,21 @@ public class AsyncLayerDisplayTask: @unchecked Sendable {
     /// block param size:         The content size (typically same as layer's bound size).
     /// block param isCancelled:  If this block returns `true`, the method should cancel the
     /// drawing process and return as quickly as possible.
-    public var display: ((CGContext, CGSize, @escaping () -> Bool) -> Void)?
+    public let display: (@Sendable (CGContext, CGSize, () -> Bool) -> Void)?
     
     /// This block will be called after the asynchronous drawing finished.
     /// It will be called on the main thread.
     ///
     /// block param layer:  The layer.
     /// block param finished:  If the draw process is cancelled, it's `false`, otherwise it's `true`
-    public var didDisplay: ((CALayer, Bool) -> Void)?
+    public let didDisplay: (@Sendable (CALayer, Bool) -> Void)?
+    
+    public init(displaysAsynchronously: Bool, willDisplay: (@Sendable (CALayer) -> Void)?, display: (@Sendable (CGContext, CGSize, () -> Bool) -> Void)?, didDisplay: (@Sendable (CALayer, Bool) -> Void)?) {
+        self.displaysAsynchronously = displaysAsynchronously
+        self.willDisplay = willDisplay
+        self.display = display
+        self.didDisplay = didDisplay
+    }
 }
 
 // MARK: - AsyncLayerDelegate Protocol
@@ -60,6 +67,7 @@ public protocol AsyncLayerDelegate: AnyObject {
 
 // MARK: - AsyncLayer
 
+/*
 public class AsyncLayer: CALayer, @unchecked Sendable {
     private var sentinel: Sentinel = Sentinel()
     
@@ -132,7 +140,7 @@ public class AsyncLayer: CALayer, @unchecked Sendable {
             task.willDisplay?(self)
             let sentinel = self.sentinel
             let value = sentinel.value
-            let isCancelled: @Sendable () -> Bool = { value != sentinel.value }
+            let isCancelled: () -> Bool = { value != sentinel.value }
             let backgroundColor = (opaque && self.backgroundColor != nil) ? self.backgroundColor : nil
             
             RenderQueuePool.next().async {
@@ -255,14 +263,12 @@ enum RenderQueuePool {
         return queues[index]
     }
 }
-
-
+*/
 
 // AsyncLayer with swift concurrency
 
-/*
- public class AsyncLayer: CALayer, @unchecked Sendable {
-     private var sentinel: Sentinel = Sentinel()
+public class AsyncLayer: CALayer, @unchecked Sendable {
+     private let sentinel: Sentinel = Sentinel()
      
      private static var releaseQueue: DispatchQueue {
          return .global(qos: .utility)
@@ -362,7 +368,6 @@ enum RenderQueuePool {
                              context.fillPath()
                              context.restoreGState()
                          }
-                         
                          task.display?(context, size, isCancelled)
                      }
                      _ = backgroundColor
@@ -448,4 +453,4 @@ enum RenderQueuePool {
          return actors[index]
      }
  }
-*/
+

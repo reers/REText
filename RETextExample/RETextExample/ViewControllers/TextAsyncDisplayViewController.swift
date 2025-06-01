@@ -82,7 +82,7 @@ class TextAsyncDisplayViewController: UITableViewController {
         NSLayoutConstraint.activate([
             toolbar.topAnchor.constraint(
                 equalTo: containerView.safeAreaLayoutGuide.topAnchor,
-                constant: navigationController.navigationBar.frame.height
+                constant: 38
             ),
             toolbar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             toolbar.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),

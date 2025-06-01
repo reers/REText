@@ -193,7 +193,6 @@ class TextLayoutManager: NSLayoutManager {
         }
     }
 
-    @MainActor
     func drawImageAttachments(
         with attachmentsInfo: [TextAttachmentInfo],
         at origin: CGPoint,
@@ -217,7 +216,6 @@ class TextLayoutManager: NSLayoutManager {
         }
     }
 
-    @MainActor
     func drawViewAndLayerAttachments(
         with attachmentsInfo: [TextAttachmentInfo],
         at origin: CGPoint,
