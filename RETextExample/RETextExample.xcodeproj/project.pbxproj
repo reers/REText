@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D0ED29672DEC4D8A0012996F /* ReerKit in Frameworks */ = {isa = PBXBuildFile; productRef = D0ED29662DEC4D8A0012996F /* ReerKit */; };
 		D0F8BCC22D9F735F00122003 /* REText in Frameworks */ = {isa = PBXBuildFile; productRef = D0F8BCC12D9F735F00122003 /* REText */; };
 		D0F8BD082D9F752000122003 /* REText in Frameworks */ = {isa = PBXBuildFile; productRef = D0F8BD072D9F752000122003 /* REText */; };
 /* End PBXBuildFile section */
@@ -41,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0ED29672DEC4D8A0012996F /* ReerKit in Frameworks */,
 				D0F8BD082D9F752000122003 /* REText in Frameworks */,
 				D0F8BCC22D9F735F00122003 /* REText in Frameworks */,
 			);
@@ -87,6 +89,7 @@
 			packageProductDependencies = (
 				D0F8BCC12D9F735F00122003 /* REText */,
 				D0F8BD072D9F752000122003 /* REText */,
+				D0ED29662DEC4D8A0012996F /* ReerKit */,
 			);
 			productName = RETextExample;
 			productReference = D0F8BC882D9F701F00122003 /* RETextExample.app */;
@@ -118,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D0F8BD062D9F752000122003 /* XCLocalSwiftPackageReference "../../REText" */,
+				D0ED29652DEC4D8A0012996F /* XCRemoteSwiftPackageReference "ReerKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D0F8BC892D9F701F00122003 /* Products */;
@@ -162,7 +166,6 @@
 				INFOPLIST_FILE = RETextExample/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -190,7 +193,6 @@
 				INFOPLIST_FILE = RETextExample/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -355,7 +357,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		D0ED29652DEC4D8A0012996F /* XCRemoteSwiftPackageReference "ReerKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/reers/ReerKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.7;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		D0ED29662DEC4D8A0012996F /* ReerKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0ED29652DEC4D8A0012996F /* XCRemoteSwiftPackageReference "ReerKit" */;
+			productName = ReerKit;
+		};
 		D0F8BCC12D9F735F00122003 /* REText */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = REText;

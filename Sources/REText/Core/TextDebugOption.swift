@@ -48,6 +48,24 @@ public class TextDebugOption {
     public var glyphBorderColor: UIColor?
     public var glyphFillColor: UIColor?
     
+    public init(
+        baselineColor: UIColor? = nil,
+        lineFragmentBorderColor: UIColor? = nil,
+        lineFragmentFillColor: UIColor? = nil,
+        lineFragmentUsedBorderColor: UIColor? = nil,
+        lineFragmentUsedFillColor: UIColor? = nil,
+        glyphBorderColor: UIColor? = nil,
+        glyphFillColor: UIColor? = nil
+    ) {
+        self.baselineColor = baselineColor
+        self.lineFragmentBorderColor = lineFragmentBorderColor
+        self.lineFragmentFillColor = lineFragmentFillColor
+        self.lineFragmentUsedBorderColor = lineFragmentUsedBorderColor
+        self.lineFragmentUsedFillColor = lineFragmentUsedFillColor
+        self.glyphBorderColor = glyphBorderColor
+        self.glyphFillColor = glyphFillColor
+    }
+    
     private nonisolated(unsafe) static let applier: @convention(c) (
         UnsafeRawPointer?, UnsafeMutableRawPointer?
     ) -> Void = { value, _ in

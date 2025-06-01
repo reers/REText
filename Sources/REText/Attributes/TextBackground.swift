@@ -37,7 +37,7 @@ public class TextBackground: NSObject {
     public var cornerRadius: CGFloat = 0
     public var fillColor: UIColor?
     
-    public init(cornerRadius: CGFloat, fillColor: UIColor? = nil) {
+    public init(cornerRadius: CGFloat = 0, fillColor: UIColor? = nil) {
         self.cornerRadius = cornerRadius
         self.fillColor = fillColor
     }

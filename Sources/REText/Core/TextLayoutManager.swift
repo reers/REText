@@ -377,7 +377,7 @@ class TextLayoutManager: NSLayoutManager {
                 let startLineFragmentRect = self.lineFragmentRect(forGlyphAt: glyphRange.location, effectiveRange: &effectiveGlyphRange)
                 let maxGlyphIndex = NSMaxRange(glyphRange) - 1
                 
-                if NSLocationInRange(maxGlyphIndex, effectiveGlyphRange) { // in the same line
+                if NSLocationInRange(maxGlyphIndex, effectiveGlyphRange) {
                     let startLineUsedFragment = self.lineFragmentUsedRect(forGlyphAt: glyphRange.location, effectiveRange: nil)
                     blockRect = startLineFragmentRect
                     blockRect.size.height = startLineUsedFragment.height
@@ -407,88 +407,105 @@ class TextLayoutManager: NSLayoutManager {
         at point: CGPoint,
         forCharacterRange charRange: NSRange
     ) {
-        guard let strokeColor = background.borderColor else { return }
-        guard let fillColor = background.fillColor else { return }
-        let strokeWidth = background.borderWidth
-        guard strokeWidth > 0 else { return }
         let cornerRadius = background.cornerRadius
+        let uiStrokeColor = background.borderColor
+        let strokeWidth = background.borderWidth
         let borderEdges = background.borderEdges
         let lineJoin = background.lineJoin
         let lineCap = background.lineCap
+        let uiFillColor = background.fillColor
         
-        /// background
-        var paths: [UIBezierPath] = []
-        for rect in rectArray {
-            var rect = rect
-            rect.origin.x += point.x
-            rect.origin.y += point.y
-            let path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius)
-            path.close()
-            paths.append(path)
+        let shouldDrawFill = uiFillColor != nil
+        let shouldDrawStroke = uiStrokeColor != nil && strokeWidth > 0
+        
+        if !shouldDrawFill && !shouldDrawStroke {
+            return
         }
         
         guard let context = UIGraphicsGetCurrentContext() else { return }
-        context.saveGState()
-        for path in paths {
-            context.addPath(path.cgPath)
-        }
-        context.setFillColor(fillColor.cgColor)
-        context.fillPath()
-        context.restoreGState()
         
-        /// stroke
-        let inset = strokeWidth * 0.5
-        var strokePaths: [UIBezierPath] = []
-        for rect in rectArray {
-            var rect = rect
-            rect.origin.x += point.x
-            rect.origin.y += point.y
-            rect = rect.insetBy(dx: inset, dy: inset)
-            
-            let path: UIBezierPath
-            if borderEdges == .all {
-                var scaledCornerRadius = cornerRadius
-                if inset > 0 && rect.height > 0 {
-                    scaledCornerRadius = (cornerRadius * (1 - inset / rect.height)).pixelFloor()
-                }
-                path = UIBezierPath(roundedRect: rect, cornerRadius: scaledCornerRadius)
+        if shouldDrawFill, let actualFillColor = uiFillColor {
+            var fillPaths: [UIBezierPath] = []
+            for rect in rectArray {
+                var mutableRect = rect
+                mutableRect.origin.x += point.x
+                mutableRect.origin.y += point.y
+                let path = UIBezierPath(roundedRect: mutableRect, cornerRadius: cornerRadius)
                 path.close()
-            } else {
-                path = UIBezierPath()
-                let minX = rect.minX
-                let maxX = rect.maxX
-                let minY = rect.minY
-                let maxY = rect.maxY
-                if borderEdges.contains(.top) {
-                    path.move(to: CGPoint(x: maxX, y: minY))
-                    path.addLine(to: CGPoint(x: minX, y: minY))
-                }
-                if borderEdges.contains(.left) {
-                    path.move(to: CGPoint(x: minX, y: minY))
-                    path.addLine(to: CGPoint(x: minX, y: maxY))
-                }
-                if borderEdges.contains(.bottom) {
-                    path.move(to: CGPoint(x: minX, y: maxY))
-                    path.addLine(to: CGPoint(x: maxX, y: maxY))
-                }
-                if borderEdges.contains(.right) {
-                    path.move(to: CGPoint(x: maxX, y: maxY))
-                    path.addLine(to: CGPoint(x: maxX, y: minY))
-                }
+                fillPaths.append(path)
             }
-            strokePaths.append(path)
+            
+            context.saveGState()
+            for path in fillPaths {
+                context.addPath(path.cgPath)
+            }
+            context.setFillColor(actualFillColor.cgColor)
+            context.fillPath()
+            context.restoreGState()
         }
         
-        context.saveGState()
-        for path in strokePaths {
-            context.addPath(path.cgPath)
+        if shouldDrawStroke, let actualStrokeColor = uiStrokeColor {
+            let inset = strokeWidth * 0.5
+            var strokePaths: [UIBezierPath] = []
+            for rect in rectArray {
+                var mutableRect = rect
+                mutableRect.origin.x += point.x
+                mutableRect.origin.y += point.y
+                mutableRect = mutableRect.insetBy(dx: inset, dy: inset)
+                
+                let path: UIBezierPath
+                if borderEdges == .all {
+                    var scaledCornerRadius = cornerRadius
+                    if inset > 0 && mutableRect.height > 0 {
+                        let scaleFactorPart = 1 - (inset / mutableRect.height)
+                        if scaleFactorPart > 0 {
+                            scaledCornerRadius = (cornerRadius * scaleFactorPart).pixelFloor()
+                        } else {
+                            scaledCornerRadius = 0
+                        }
+                    } else if inset > 0 && cornerRadius > 0 && mutableRect.height <= 0 {
+                        scaledCornerRadius = 0
+                    }
+                    path = UIBezierPath(roundedRect: mutableRect, cornerRadius: max(0, scaledCornerRadius))
+                    path.close()
+                } else {
+                    path = UIBezierPath()
+                    let minX = mutableRect.minX
+                    let maxX = mutableRect.maxX
+                    let minY = mutableRect.minY
+                    let maxY = mutableRect.maxY
+                    
+                    if borderEdges.contains(.top) {
+                        path.move(to: CGPoint(x: maxX, y: minY))
+                        path.addLine(to: CGPoint(x: minX, y: minY))
+                    }
+                    if borderEdges.contains(.left) {
+                        path.move(to: CGPoint(x: minX, y: minY))
+                        path.addLine(to: CGPoint(x: minX, y: maxY))
+                    }
+                    if borderEdges.contains(.bottom) {
+                        path.move(to: CGPoint(x: minX, y: maxY))
+                        path.addLine(to: CGPoint(x: maxX, y: maxY))
+                    }
+                    if borderEdges.contains(.right) {
+                        path.move(to: CGPoint(x: maxX, y: maxY))
+                        path.addLine(to: CGPoint(x: maxX, y: minY))
+                    }
+                }
+                strokePaths.append(path)
+            }
+            
+            context.saveGState()
+            for path in strokePaths {
+                context.addPath(path.cgPath)
+            }
+            context.setLineWidth(strokeWidth)
+            context.setLineJoin(lineJoin)
+            context.setLineCap(lineCap)
+            context.setStrokeColor(actualStrokeColor.cgColor)
+            context.strokePath()
+            context.restoreGState()
         }
-        context.setLineWidth(strokeWidth)
-        context.setLineJoin(lineJoin)
-        context.setLineCap(lineCap)
-        context.setStrokeColor(strokeColor.cgColor)
-        context.strokePath()
-        context.restoreGState()
     }
 
     private func baselineOffset(forGlyphRange glyphRange: NSRange) -> CGFloat {
