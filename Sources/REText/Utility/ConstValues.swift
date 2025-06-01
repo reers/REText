@@ -23,7 +23,7 @@
 
 import UIKit
 
-extension REText {
+public extension REText {
     
     static let containerMaxSize = CGSize(width: 0x100000, height: 0x100000)
     

@@ -57,12 +57,12 @@ extension NSAttributedString.Key {
 /// to maintain correctness.
 open class TextLink: NSObject {
     
-    public let value: AnyHashable
+    public var value: AnyHashable?
 
     /// Initializes a `TextLink` instance
     /// - Parameter value: The `AnyHashable` value to wrap. Ensure the original, underlying
     ///   value comes from a type with an efficient `Hashable` conformance.
-    public init(value: AnyHashable) {
+    public init(value: AnyHashable? = nil) {
         self.value = value
         super.init()
     }
