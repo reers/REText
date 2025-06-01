@@ -33,7 +33,7 @@ class DemoViewController: UITableViewController {
         addCell("Async Display", className: "TextAsyncDisplayViewController")
         addCell("Exclusion Path", className: "TextExclusionPathsViewController")
         addCell("Custom Attribute", className: "TextCustomAttributeViewController")
-//        addCell("Swift Example", className: String(describing: MPITextSwfitExampleViewController.self))
+        addCell("Text Link", className: "TextLinkViewController")
         addCell("Text Selection", className: "TextSelectionViewController")
         addCell("Size Calculation", className: "TextSizeCalculationViewController")
         addCell("Attributes Separation", className: "TextAttributesSeparationViewController")

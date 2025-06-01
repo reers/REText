@@ -37,7 +37,7 @@ extension ExampleBackground {
         if !super.isEqual(object) {
             return false
         }
-        if self === object as AnyObject? { return false }
+        if self === object as AnyObject? { return true }
         guard let other = object as? ExampleBackground else { return false }
         
         return abs(height - other.height) < CGFloat.ulpOfOne
