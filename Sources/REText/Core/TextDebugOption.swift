@@ -70,8 +70,12 @@ public class TextDebugOption {
         UnsafeRawPointer?, UnsafeMutableRawPointer?
     ) -> Void = { value, _ in
         guard let value = value else { return }
-        let target = unsafeBitCast(value, to: TextDebugTarget.self)
-        target.setDebugOption(_shared)
+        let targetObject = Unmanaged<AnyObject>.fromOpaque(value).takeUnretainedValue()
+        if let target = targetObject as? TextDebugTarget {
+            target.setDebugOption(_shared)
+        } else {
+            assertionFailure("Retrieved object from CFSet is not a TextDebugTarget.")
+        }
     }
 
     /// Lock for protecting shared state access.
