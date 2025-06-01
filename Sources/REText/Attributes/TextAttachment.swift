@@ -66,7 +66,7 @@ public enum Content: Hashable {
 
 open class TextAttachment: NSTextAttachment, @unchecked Sendable {
     
-    open var verticalAligment: TextVerticalAlignment = .center
+    open var verticalAlignment: TextVerticalAlignment = .center
     open var contentMode: UIView.ContentMode = .scaleToFill
     open var contentSize: CGSize = .zero
     open var contentInsets: UIEdgeInsets = .zero
@@ -121,7 +121,7 @@ open class TextAttachment: NSTextAttachment, @unchecked Sendable {
         
         var y = font.descender
         
-        switch verticalAligment {
+        switch verticalAlignment {
         case .top:
             y -= attachmentSize.height - font.lineHeight
         case .center:
@@ -182,7 +182,7 @@ extension TextAttachment {
         if let content = content {
             hasher.combine(content)
         }
-        hasher.combine(verticalAligment)
+        hasher.combine(verticalAlignment)
         hasher.combine(contentMode.rawValue)
         hasher.combine(contentSize.width)
         hasher.combine(contentSize.height)
@@ -201,7 +201,7 @@ extension TextAttachment {
         if self === object as AnyObject? { return true }
         guard let other = object as? TextAttachment else { return false }
         
-        return verticalAligment == other.verticalAligment
+        return verticalAlignment == other.verticalAlignment
             && contentMode == other.contentMode
             && contentSize == other.contentSize
             && bounds == other.bounds
