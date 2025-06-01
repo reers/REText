@@ -1,5 +1,5 @@
 //
-//  REExampleNavigationController.swift
+//  DemoNavigationController.swift
 //  RETextExample
 //
 //  Created by phoenix on 2025/6/1.
@@ -8,11 +8,13 @@
 import UIKit
 import ReerKit
 
-class REExampleNavigationController: UINavigationController {
+class DemoNavigationController: UINavigationController {
+    let fpsLabel = FPSLabel()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let fpsLabel = FPSLabel()
+        
         fpsLabel.sizeToFit()
         view.addSubview(fpsLabel)
         

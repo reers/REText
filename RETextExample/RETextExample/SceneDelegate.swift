@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
         
         let exampleListViewController = DemoViewController()
-        let nav = REExampleNavigationController(rootViewController: exampleListViewController)
+        let nav = DemoNavigationController(rootViewController: exampleListViewController)
         window?.rootViewController = nav
         
     }
