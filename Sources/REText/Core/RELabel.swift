@@ -23,117 +23,6 @@
 import UIKit
 import Dispatch
 
-public protocol RELabelDelegate: NSObjectProtocol {
-    /// Asks the delegate if the specified text view should allow the specified type of user interaction with the given URL in the given range of text.
-    /// - Parameters:
-    ///   - label: Reference label.
-    ///   - link: TextLink instance.
-    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
-    ///   - characterRange: Current interactive characterRange.
-    /// - Returns: true if interaction with the URL should be allowed; false if interaction should not be allowed.
-    func label(
-        _ label: RELabel,
-        shouldInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> Bool
-    
-    /// User Interacted link.
-    /// - Parameters:
-    ///   - label: Reference label.
-    ///   - link: TextLink instance.
-    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
-    ///   - characterRange: Current interactive characterRange.
-    ///   - interaction: Interaction type.
-    func label(
-        _ label: RELabel,
-        didInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange,
-        interaction: TextItemInteraction
-    )
-    
-    /// Asks the delegate if the specified text should have another attributes when highlighted.
-    /// - Parameters:
-    ///   - label: Reference label.
-    ///   - link: TextLink instance.
-    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
-    ///   - characterRange: Current interactive characterRange.
-    func label(
-        _ label: RELabel,
-        highlightedTextAttributesWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> [NSAttributedString.Key: Any]?
-    
-    /// The text view will begin selection triggered by longpress.
-    /// - Parameters:
-    ///   - label: Reference label.
-    ///   - selectedRange: Selection of text.
-    func labelWillBeginSelection(_ label: RELabel, selectedRange: UnsafeMutablePointer<NSRange>)
-    
-    /// The menu items will be used by menu. If menu items is empty, menu will not be shown.
-    /// - Parameter label: Reference Label.
-    func menuItems(for label: RELabel) -> [UIMenuItem]?
-    
-    /// The visibility of the menu.
-    /// - Parameter label: Reference Label.
-    func menuVisible(for label: RELabel) -> Bool
-    
-    /// Customize menu showing. You should implement menuVisibleForLabel:.
-    /// - Parameters:
-    ///   - label: Reference label.
-    ///   - menuItems: The custom menu items for the menu.
-    ///   - targetRect: A rectangle that defines the area that is to be the target of the menu commands.
-    func label(_ label: RELabel, showMenuWith menuItems: [UIMenuItem], targetRect: CGRect)
-    
-    /// Customize menu hiding.
-    /// - Parameter label: Reference label.
-    func labelHideMenu(_ label: RELabel)
-}
-
-public extension RELabelDelegate {
-    func label(
-        _ label: RELabel,
-        shouldInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> Bool {
-        return true
-    }
-    
-    func label(
-        _ label: RELabel,
-        didInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange,
-        interaction: TextItemInteraction
-    ) {}
-    
-    func label(
-        _ label: RELabel,
-        highlightedTextAttributesWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> [NSAttributedString.Key: Any]? {
-        return nil
-    }
-    
-    func labelWillBeginSelection(_ label: RELabel, selectedRange: UnsafeMutablePointer<NSRange>) {}
-    
-    func menuItems(for label: RELabel) -> [UIMenuItem]? {
-        return nil
-    }
-    
-    func menuVisible(for label: RELabel) -> Bool {
-        return false
-    }
-    
-    func label(_ label: RELabel, showMenuWith menuItems: [UIMenuItem], targetRect: CGRect) {}
-    
-    func labelHideMenu(_ label: RELabel) {}
-}
-
 public extension RELabel {
     
     /// Composed by truncationAttributedToken and additionalTruncationAttributedMessage.
@@ -240,10 +129,90 @@ public extension RELabel {
 @MainActor
 open class RELabel: UIView {
     
-    // MARK: - Properties
+    // MARK: - Link Interaction Closures
+
+    /// Determines whether the label should allow the specified type of user interaction with the given link in the given range of text.
+    /// - Parameters:
+    ///   - label: The label instance.
+    ///   - link: TextLink instance.
+    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
+    ///   - range: Current interactive characterRange.
+    /// - Returns: true if interaction with the link should be allowed; false if interaction should not be allowed.
+    public var shouldInteractWithLink: ((
+        _ label: RELabel,
+        _ link: TextLink,
+        _ attributedText: NSAttributedString,
+        _ range: NSRange
+    ) -> Bool)?
+
+    /// Called when user interacts with a link.
+    /// - Parameters:
+    ///   - label: The label instance.
+    ///   - link: TextLink instance.
+    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
+    ///   - range: Current interactive characterRange.
+    ///   - interaction: Interaction type.
+    public var onLinkInteraction: ((
+        _ label: RELabel,
+        _ link: TextLink,
+        _ attributedText: NSAttributedString,
+        _ range: NSRange,
+        _ interaction: TextItemInteraction
+    ) -> Void)?
+
+    /// Provides custom text attributes when a link is highlighted.
+    /// - Parameters:
+    ///   - label: The label instance.
+    ///   - link: TextLink instance.
+    ///   - attributedText: The attributedText, if link in truncation, it's truncationAttributedText.
+    ///   - range: Current interactive characterRange.
+    /// - Returns: A dictionary of text attributes or nil if no custom attributes should be applied.
+    public var highlightedTextAttributesProvider: ((
+        _ label: RELabel,
+        _ link: TextLink,
+        _ attributedText: NSAttributedString,
+        _ range: NSRange
+    ) -> [NSAttributedString.Key: Any]?)?
+
+    // MARK: - Text Selection Closures
+
+    /// Called when the label is about to begin text selection triggered by long press.
+    /// - Parameters:
+    ///   - label: The label instance.
+    ///   - selectedRange: Pointer to the selection range that can be modified.
+    public var onSelectionWillBegin: ((
+        _ label: RELabel,
+        _ selectedRange: UnsafeMutablePointer<NSRange>
+    ) -> Void)?
+
+    // MARK: - Menu Customization Closures
+
+    /// Provides custom menu items for the context menu. If returns empty array or nil, menu will not be shown.
+    /// - Parameter label: The label instance.
+    /// - Returns: Array of menu items or nil if default menu should be used.
+    public var menuItemsProvider: ((_ label: RELabel) -> [UIMenuItem]?)?
+
+    /// The visibility of the menu. Only called when menuType is `.custom`.
+    /// - Parameter label: The label instance.
+    /// - Returns: true if custom menu is currently visible; false otherwise.
+    public var isCustomMenuVisible: ((_ label: RELabel) -> Bool)?
+
+    /// Called when the label needs to show a custom context menu. You should also implement isMenuVisible closure for proper menu handling.
+    /// - Parameters:
+    ///   - label: The label instance.
+    ///   - menuItems: The menu items to be displayed.
+    ///   - targetRect: A rectangle that defines the area that is to be the target of the menu commands.
+    public var onShowMenu: ((
+        _ label: RELabel,
+        _ menuItems: [UIMenuItem],
+        _ targetRect: CGRect
+    ) -> Void)?
+
+    /// Called when the label needs to hide the context menu.
+    /// - Parameter label: The label instance.
+    public var onHideMenu: ((_ label: RELabel) -> Void)?
     
-    /// The receiver's delegate.
-    open weak var delegate: RELabelDelegate?
+    // MARK: - Properties
     
     /// `NSAttributedString` attributes applied to links when touched.
     open var highlightedLinkTextAttributes: [NSAttributedString.Key: Any]?
@@ -726,7 +695,8 @@ open class RELabel: UIView {
     /// To show menu by selectedRange.
     open func showMenu() {
         var menuItems: [UIMenuItem]?
-        if let items = delegate?.menuItems(for: self) {
+        
+        if let items = menuItemsProvider?(self) {
             menuItems = items
             if items.isEmpty {
                 return
@@ -742,9 +712,9 @@ open class RELabel: UIView {
             targetRect = targetRect.union(selectionRect.rect)
         }
         
-        if let delegate = delegate {
+        if let onShowMenu {
             menuType = .custom
-            delegate.label(self, showMenuWith: menuItems ?? [], targetRect: targetRect)
+            onShowMenu(self, menuItems ?? [], targetRect)
         } else {
             menuType = .system
             UIMenuController.shared.menuItems = menuItems
@@ -759,8 +729,8 @@ open class RELabel: UIView {
         }
         menuType = .none
         
-        if let delegate = delegate {
-            delegate.labelHideMenu(self)
+        if let onHideMenu {
+            onHideMenu(self)
         } else {
             UIMenuController.shared.hideMenu()
         }
@@ -1058,7 +1028,7 @@ open class RELabel: UIView {
         case .system:
             return UIMenuController.shared.isMenuVisible
         case .custom:
-            return delegate?.menuVisible(for: self) ?? false
+            return isCustomMenuVisible?(self) ?? false
         case .none:
             return false
         }
@@ -1159,15 +1129,15 @@ extension RELabel: TextInteractable {
     }
     
     public func shouldInteractLink(with linkRange: NSRange, for attributedText: NSAttributedString) -> Bool {
-        var shouldInteractLink = true
-        if let delegate = delegate {
-            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
-                shouldInteractLink = delegate.label(self, shouldInteractWith: value, for: attributedText, in: linkRange)
+        var shouldInteract = true
+        if let shouldInteractWithLink {
+            if let link = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
+                shouldInteract = shouldInteractWithLink(self, link, attributedText, linkRange)
             } else {
-                shouldInteractLink = false
+                shouldInteract = false
             }
         }
-        return shouldInteractLink
+        return shouldInteract
     }
     
     public func highlightedLinkTextAttributes(
@@ -1175,29 +1145,25 @@ extension RELabel: TextInteractable {
         for attributedText: NSAttributedString
     ) -> [NSAttributedString.Key : Any] {
         var textAttributes = highlightedLinkTextAttributes ?? [:]
-        if let delegate = delegate {
-            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
-                if let attributes = delegate.label(self, highlightedTextAttributesWith: value, for: attributedText, in: linkRange) {
-                    textAttributes = attributes
-                }
-            }
+        if let highlightedTextAttributesProvider,
+           let link = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink,
+           let attributes = highlightedTextAttributesProvider(self, link, attributedText, linkRange) {
+            textAttributes = attributes
         }
         return textAttributes
     }
     
     public func tapLink(with linkRange: NSRange, for attributedText: NSAttributedString) {
-        if let delegate = delegate {
-            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
-                delegate.label(self, didInteractWith: value, for: attributedText, in: linkRange, interaction: .tap)
-            }
+        if let onLinkInteraction,
+           let link = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            onLinkInteraction(self, link, attributedText, linkRange, .tap)
         }
     }
     
     public func longPressLink(with linkRange: NSRange, for attributedText: NSAttributedString) {
-        if let delegate = delegate {
-            if let value = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
-                delegate.label(self, didInteractWith: value, for: attributedText, in: linkRange, interaction: .longPress)
-            }
+        if let onLinkInteraction,
+           let link = attributedText.attribute(.textLink, at: linkRange.location, effectiveRange: nil) as? TextLink {
+            onLinkInteraction(self, link, attributedText, linkRange, .longPress)
         }
     }
     
@@ -1284,8 +1250,8 @@ extension RELabel: TextInteractable {
             return
         }
         
-        if let delegate = delegate {
-            delegate.labelWillBeginSelection(self, selectedRange: &selectedRange)
+        if let onSelectionWillBegin {
+            onSelectionWillBegin(self, &selectedRange)
         }
         
         self.selectedRange = selectedRange

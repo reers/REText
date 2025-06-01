@@ -20,7 +20,22 @@ class TextAttributesViewController: UIViewController {
         let label = RELabel()
         label.numberOfLines = 0
         label.backgroundColor = UIColor(white: 0.933, alpha: 1.0)
-        label.delegate = self
+        label.highlightedTextAttributesProvider = { (label, link, attributedText, range) -> [NSAttributedString.Key: Any]? in
+            let background = TextBackground(cornerRadius: 3, fillColor: .red)
+            background.borderColor = UIColor(red: 1.0, green: 0.029, blue: 0.651, alpha: 1.0)
+            background.borderWidth = 3
+            return [.background: background]
+        }
+        label.onLinkInteraction = { [weak self] label, link, attributedText, range, interaction in
+            guard let self = self else { return }
+            let interactionString = interaction == .tap ? "Tapped" : "Long pressed"
+            let text = attributedText.attributedSubstring(from: range).string
+            showMessage("\(interactionString): \(text)")
+            
+            if let url = link.value as? URL {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
         label.frame = view.bounds
         view.addSubview(label)
         
@@ -233,37 +248,4 @@ class TextAttributesViewController: UIViewController {
         }
     }
  
-}
-
-// MARK: - RELabelDelegate
-
-extension TextAttributesViewController: RELabelDelegate {
-    
-    func label(
-        _ label: RELabel,
-        highlightedTextAttributesWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> [NSAttributedString.Key : Any]? {
-        let background = TextBackground(cornerRadius: 3, fillColor: .red)
-        background.borderColor = UIColor(red: 1.0, green: 0.029, blue: 0.651, alpha: 1.0)
-        background.borderWidth = 3
-        return [.background: background]
-    }
-    
-    func label(
-        _ label: RELabel,
-        didInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange,
-        interaction: TextItemInteraction
-    ) {
-        let interactionString = interaction == .tap ? "Tapped" : "Long pressed"
-        let text = attributedText.attributedSubstring(from: range).string
-        showMessage("\(interactionString): \(text)")
-        
-        if let url = link.value as? URL {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        }
-    }
 }

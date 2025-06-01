@@ -48,7 +48,14 @@ class TextCustomAttributeViewController: UIViewController {
         
         let label = RELabel()
         label.highlightedLinkTextAttributes = nil
-        label.delegate = self
+        label.highlightedTextAttributesProvider = { (label, link, attributedText, range) -> [NSAttributedString.Key: Any]? in
+            if let textColor = attributedText.attribute(.foregroundColor, at: range.location, effectiveRange: nil) as? UIColor {
+                let highlightedColor = textColor.withAlphaComponent(0.5)
+                return [.foregroundColor: highlightedColor]
+            }
+            
+            return nil
+        }
         label.attributedText = attributedText
         label.textAlignment = .center
         label.backgroundColor = .lightGray
@@ -57,23 +64,5 @@ class TextCustomAttributeViewController: UIViewController {
         
         view.addSubview(label)
         
-    }
-}
-
-// MARK: - RELabelDelegate
-
-extension TextCustomAttributeViewController: RELabelDelegate {
-    func label(
-        _ label: RELabel,
-        highlightedTextAttributesWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange
-    ) -> [NSAttributedString.Key : Any]? {
-        if let textColor = attributedText.attribute(.foregroundColor, at: range.location, effectiveRange: nil) as? UIColor {
-            let highlightedColor = textColor.withAlphaComponent(0.5)
-            return [.foregroundColor: highlightedColor]
-        }
-        
-        return nil
     }
 }

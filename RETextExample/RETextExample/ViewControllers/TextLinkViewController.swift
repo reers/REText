@@ -48,7 +48,15 @@ class TextLinkViewController: UIViewController {
         reLabel.attributedText = attributedText
         reLabel.textContainerInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         reLabel.numberOfLines = 0
-        reLabel.delegate = self
+        reLabel.onLinkInteraction = { label, link, attributedText, range, interaction in
+            guard let exLink = link as? ExampleLink else { return }
+            
+            let tappedText = attributedText.attributedSubstring(from: range).string
+            let linkValue = exLink.value
+            let linkType = exLink.linkType
+            
+            print("Tapped => text: \(tappedText), value: \(String(describing: linkValue)), linkType: \(linkType)")
+        }
         
         reLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(reLabel)
@@ -57,25 +65,5 @@ class TextLinkViewController: UIViewController {
             reLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             reLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-    }
-}
-
-// MARK: - RELabelDelegate
-
-extension TextLinkViewController: RELabelDelegate {
-    func label(
-        _ label: RELabel,
-        didInteractWith link: TextLink,
-        for attributedText: NSAttributedString,
-        in range: NSRange,
-        interaction: TextItemInteraction
-    ) {
-        guard let exLink = link as? ExampleLink else { return }
-        
-        let tappedText = attributedText.attributedSubstring(from: range).string
-        let linkValue = exLink.value
-        let linkType = exLink.linkType
-        
-        print("Tapped => text: \(tappedText), value: \(String(describing: linkValue)), linkType: \(linkType)")
     }
 }

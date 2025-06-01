@@ -10,7 +10,7 @@ import REText
 import ReerKit
 
 @objc(TextAttachmentViewController)
-class TextAttachmentViewController: UIViewController, RELabelDelegate, UIGestureRecognizerDelegate {
+class TextAttachmentViewController: UIViewController, UIGestureRecognizerDelegate {
 
     private var reLabel: RELabel!
     private var dotView: UIView!
@@ -156,7 +156,11 @@ class TextAttachmentViewController: UIViewController, RELabelDelegate, UIGesture
             reLabel.center = CGPoint(x: superview.frame.width / 2, y: superview.frame.height / 2)
             reLabel.re.left = 20
         }
-        reLabel.delegate = self
+        reLabel.onLinkInteraction = { label, link, attributedText, range, interaction in
+            if interaction == .tap {
+                label.sizeToFit()
+            }
+        }
         view.addSubview(reLabel)
 
         let dot = newDotView()
@@ -211,13 +215,5 @@ class TextAttachmentViewController: UIViewController, RELabelDelegate, UIGesture
         let location = gestureRecognizer.location(in: view)
         let dotViewFrame = dotView.convert(dotView.bounds, to: view)
         return dotViewFrame.contains(location)
-    }
-
-    // MARK: - RELabelDelegate
-   
-    func label(_ label: RELabel, didInteractWith link: TextLink, for attributedText: NSAttributedString, in range: NSRange, interaction: TextItemInteraction) {
-        if interaction == .tap {
-            reLabel.sizeToFit()
-        }
     }
 }

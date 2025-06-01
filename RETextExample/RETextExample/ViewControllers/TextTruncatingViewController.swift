@@ -9,7 +9,7 @@ import UIKit
 import REText
 
 @objc(TextTruncatingViewController)
-class TextTruncatingViewController: UITableViewController, RELabelDelegate {
+class TextTruncatingViewController: UITableViewController {
     
     private var attributedTruncationMessages: [NSAttributedString] = []
     
@@ -47,19 +47,16 @@ class TextTruncatingViewController: UITableViewController, RELabelDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "id", for: indexPath) as! TextTruncatingTableViewCell
         cell.reLabel.additionalTruncationAttributedMessage = attributedTruncationMessages[indexPath.row]
         cell.reLabel.preferredMaxLayoutWidth = tableView.frame.width
-        cell.reLabel.delegate = self
-        return cell
-    }
-    
-    // MARK: - RELabelDelegate
-    
-    func label(_ label: RELabel, didInteractWith link: TextLink, for attributedText: NSAttributedString, in range: NSRange, interaction: TextItemInteraction) {
-        guard let superview = label.superview else { return }
-        let labelCenterInTableView = superview.convert(label.center, to: tableView)
-        
-        if let indexPath = tableView.indexPathForRow(at: labelCenterInTableView) {
-            let interactionString = interaction == .tap ? "Tapped" : "Long pressed"
-            title = "Cell \(indexPath.row) \(interactionString)"
+        cell.reLabel.onLinkInteraction = { [weak self] label, link, attributedText, range, interaction in
+            guard let self = self else { return }
+            guard let superview = label.superview else { return }
+            let labelCenterInTableView = superview.convert(label.center, to: tableView)
+            
+            if let indexPath = tableView.indexPathForRow(at: labelCenterInTableView) {
+                let interactionString = interaction == .tap ? "Tapped" : "Long pressed"
+                title = "Cell \(indexPath.row) \(interactionString)"
+            }
         }
+        return cell
     }
 }

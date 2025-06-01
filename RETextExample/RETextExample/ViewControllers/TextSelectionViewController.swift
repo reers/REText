@@ -73,7 +73,14 @@ class TextSelectionViewController: UIViewController {
             textView.selectedRange = NSRange(range, in: text)
         }
         
-        textView.delegate = self
+        textView.menuItemsProvider = { label -> [UIMenuItem]? in
+            let helloItem = UIMenuItem(title: "Hello", action: #selector(TextSelectionLabel.hello(_:)))
+            return [helloItem]
+        }
+        textView.onSelectionWillBegin = { label, selectedRange in
+            // You can change the selectedRange if you need.
+            // selectedRange.pointee = NSRange(location: 0, length: label.attributedText?.length ?? 0)
+        }
         view.addSubview(textView)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -94,32 +101,4 @@ class TextSelectionViewController: UIViewController {
         super.viewWillDisappear(animated)
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
-}
-
-// MARK: - RELabelDelegate
-
-extension TextSelectionViewController: RELabelDelegate {
-    func labelWillBeginSelection(_ label: RELabel, selectedRange: UnsafeMutablePointer<NSRange>) {
-        // You can change the selectedRange if you need.
-        // selectedRange.pointee = NSRange(location: 0, length: label.attributedText?.length ?? 0)
-    }
-    
-    func menuItems(for label: RELabel) -> [UIMenuItem]? {
-        let helloItem = UIMenuItem(title: "Hello", action: #selector(TextSelectionLabel.hello(_:)))
-        return [helloItem]
-    }
-    
-    /*
-    func menuVisible(for label: RELabel) -> Bool {
-        
-    }
-    
-    func label(_ label: RELabel, showMenuWith menuItems: [UIMenuItem], targetRect: CGRect) {
-        
-    }
-    
-    func labelHideMenu(_ label: RELabel) {
-        
-    }
-    */
 }
