@@ -31,18 +31,58 @@ class TextEffectWindowViewController: UIViewController {
 
 class TextEffectWindow: UIWindow {
     
-    static let shared: TextEffectWindow = {
-        let window = TextEffectWindow()
-        window.frame = CGRect(origin: .zero, size: REText.screenSize)
-        window.isUserInteractionEnabled = false
-        window.windowLevel = .statusBar + 1
-        window.isHidden = false
-        window.rootViewController = TextEffectWindowViewController()
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.layer.backgroundColor = UIColor.clear.cgColor
+    private static var _sharedWindow: TextEffectWindow?
+    
+    static var shared: TextEffectWindow {
+        if let window = _sharedWindow {
+            return window
+        }
+        
+        let windowScene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive } ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first
+        
+        guard let scene = windowScene else {
+            let window = TextEffectWindow()
+            _sharedWindow = window
+            return window
+        }
+        
+        let window = TextEffectWindow(windowScene: scene)
+        _sharedWindow = window
         return window
-    }()
+    }
+    
+    override init(windowScene: UIWindowScene) {
+        super.init(windowScene: windowScene)
+        setupWindow()
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: .zero)
+        setupWindow()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupWindow() {
+        self.frame = UIScreen.main.bounds
+        self.isUserInteractionEnabled = false
+        self.windowLevel = .statusBar + 1
+        self.rootViewController = TextEffectWindowViewController()
+        self.isOpaque = false
+        self.backgroundColor = .clear
+        self.layer.backgroundColor = UIColor.clear.cgColor
+        self.isHidden = false
+    }
+    
+    override var canBecomeKey: Bool {
+        return false
+    }
     
     @objc
     func _canAffectStatusBarAppearance() -> Bool {
@@ -129,12 +169,12 @@ class TextEffectWindow: UIWindow {
                 }
             },
             completion: { finished in
-            if finished {
-                mag.removeFromSuperview()
-                mag.transform = .identity
-                mag.alpha = 1
-            }
-        })
+                if finished {
+                    mag.removeFromSuperview()
+                    mag.transform = .identity
+                    mag.alpha = 1
+                }
+            })
     }
     
     // MARK: - Private
