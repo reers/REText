@@ -2,7 +2,7 @@
 
 # REText
 
-A modern Swift implementation of MPITextKit with enhanced text rendering and editing capabilities for iOS/macOS platforms.
+A modern Swift implementation of MPITextKit with enhanced text rendering and editing capabilities for iOS platforms.
 
 ## Overview
 
