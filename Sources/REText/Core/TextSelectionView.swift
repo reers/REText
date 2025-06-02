@@ -37,13 +37,15 @@ class TextSelectionGrabber: UIView {
             updateKnob()
         }
     }
-    var knobDiameter: CGFloat = 10 {
+
+    var knobDiameter: CGFloat = 14 {
         didSet {
             var knobFrame = knob.frame
             knobFrame.size = CGSize(width: knobDiameter, height: knobDiameter)
             updateKnob()
         }
     }
+
     var grabberColor: UIColor? {
         didSet {
             backgroundColor = grabberColor
@@ -179,11 +181,13 @@ class TextSelectionView: UIView {
         startGrabber.knobDirection = .up
         startGrabber.isHidden = true
         startGrabber.grabberColor = grabberColor
+        startGrabber.layer.cornerRadius = grabberWidth * 0.5
         
         endGrabber = TextSelectionGrabber()
         endGrabber.knobDirection = .down
         endGrabber.isHidden = true
         endGrabber.grabberColor = grabberColor
+        endGrabber.layer.cornerRadius = grabberWidth * 0.5
         
         super.init(frame: frame)
         
