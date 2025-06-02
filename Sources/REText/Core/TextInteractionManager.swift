@@ -89,6 +89,16 @@ class TextInteractionManager: NSObject {
     }()
     
     weak var delegate: TextInteractionManagerDelegate?
+    var magnifierType: MagnifierType = .caret {
+        didSet {
+            if state.showingMagnifier {
+                hideMagnifier()
+                _magnifier = nil
+            } else {
+                _magnifier = nil
+            }
+        }
+    }
     
     var hasActiveLink: Bool {
         return activeLinkRange.location != NSNotFound && activeLinkRange.length > 0
@@ -102,11 +112,14 @@ class TextInteractionManager: NSObject {
     
     private weak var interactableView: TextInteractableView?
     
-    private lazy var rangedMagnifier: TextMagnifier = {
-        let magnifier = TextMagnifier.magnifier(type: .ranged)
+    private var _magnifier: TextMagnifier?
+    private var magnifier: TextMagnifier {
+        if let _magnifier { return _magnifier }
+        let magnifier = TextMagnifier.magnifier(type: magnifierType)
         magnifier.hostView = interactableView
+        _magnifier = magnifier
         return magnifier
-    }()
+    }
     
     private var trackingGrabberType: TextSelectionGrabberType = .none
     private var pinnedGrabberIndex: Int = NSNotFound
@@ -115,7 +128,7 @@ class TextInteractionManager: NSObject {
     private var snapshotAttributedText: NSAttributedString?
     
     private struct State {
-        var showingRangedMagnifier: Bool = false
+        var showingMagnifier: Bool = false
     }
     private var state = State()
     
@@ -224,13 +237,13 @@ class TextInteractionManager: NSObject {
         interactableView.updateSelection(with: selectedRange)
         
         if state == .began {
-            showRangedMagnifier(at: characterIndex)
+            showMagnifier(at: characterIndex)
         } else if state == .changed {
-            moveRangedMagnifier(at: characterIndex)
+            moveMagnifier(at: characterIndex)
         }
         
         if state == .ended || state == .cancelled || state == .failed {
-            hideRangedMagnifier()
+            hideMagnifier()
             showMenu()
             
             self.trackingGrabberType = .none
@@ -363,35 +376,35 @@ class TextInteractionManager: NSObject {
     
     // MARK: - Private (Magnifier)
     
-    private func updateRangedMagnifierSetting(with characterIndex: Int) {
+    private func updateMagnifierSetting(with characterIndex: Int) {
         guard let interactableView = interactableView else { return }
         
         let grabberType: TextSelectionGrabberType = characterIndex < pinnedGrabberIndex ? .start : .end
         let grabberRect = interactableView.grabberRect(for: grabberType)
         
         let grabberCenter = CGPoint(x: grabberRect.midX, y: grabberRect.midY)
-        rangedMagnifier.hostCaptureCenter = grabberCenter
-        rangedMagnifier.hostPopoverCenter = CGPoint(x: grabberCenter.x, y: grabberRect.minY)
+        magnifier.hostCaptureCenter = grabberCenter
+        magnifier.hostPopoverCenter = CGPoint(x: grabberCenter.x, y: grabberRect.minY)
     }
     
-    private func showRangedMagnifier(at characterIndex: Int) {
-        state.showingRangedMagnifier = true
+    private func showMagnifier(at characterIndex: Int) {
+        state.showingMagnifier = true
         
-        updateRangedMagnifierSetting(with: characterIndex)
+        updateMagnifierSetting(with: characterIndex)
         
-        TextEffectWindow.shared.showMagnifier(rangedMagnifier)
+        TextEffectWindow.shared.showMagnifier(magnifier)
     }
     
-    private func moveRangedMagnifier(at characterIndex: Int) {
-        updateRangedMagnifierSetting(with: characterIndex)
-        TextEffectWindow.shared.moveMagnifier(rangedMagnifier)
+    private func moveMagnifier(at characterIndex: Int) {
+        updateMagnifierSetting(with: characterIndex)
+        TextEffectWindow.shared.moveMagnifier(magnifier)
     }
     
-    private func hideRangedMagnifier() {
-        guard state.showingRangedMagnifier else { return }
-        state.showingRangedMagnifier = false
+    private func hideMagnifier() {
+        guard state.showingMagnifier else { return }
+        state.showingMagnifier = false
         
-        TextEffectWindow.shared.hideMagnifier(rangedMagnifier)
+        TextEffectWindow.shared.hideMagnifier(magnifier)
     }
 }
 

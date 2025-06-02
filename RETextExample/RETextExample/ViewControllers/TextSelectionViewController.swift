@@ -67,7 +67,8 @@ class TextSelectionViewController: UIViewController {
         textView.textVerticalAlignment = .top
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         textView.attributedText = attributedText
-        textView.tintColor = .red
+        textView.tintColor = .purple
+        textView.magnifierType = .ranged
         
         if let range = text.range(of: "Text-Handling") {
             textView.selectedRange = NSRange(range, in: text)

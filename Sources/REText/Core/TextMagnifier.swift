@@ -23,7 +23,7 @@
 import UIKit
 
 /// Magnifier type
-enum MagnifierType: Int {
+public enum MagnifierType: Int {
     case caret  /// Circular magnifier
     case ranged /// Round rectangle magnifier
 }

@@ -530,6 +530,22 @@ open class RELabel: UIView {
     /// The default value is `true`.
     open var fadeOnAsynchronouslyDisplay: Bool = true
     
+    /// The type of magnifier to display during text interaction.
+    ///
+    /// This property determines which style of magnifier is shown when users interact with text:
+    /// - `.caret`: Shows a circular magnifier for cursor positioning
+    /// - `.ranged`: Shows a rectangular magnifier for text selection
+    ///
+    /// - Note: Changing this value automatically updates the associated interaction manager
+    ///   to use the new magnifier type for subsequent text interactions.
+    open var magnifierType: MagnifierType = .caret {
+        didSet {
+            if oldValue != magnifierType {
+                interactionManager.magnifierType = magnifierType
+            }
+        }
+    }
+    
     // MARK: - Private Properties
     
     private var _attributedText: NSAttributedString?
@@ -572,6 +588,7 @@ open class RELabel: UIView {
     private func commonInit() {
         interactionManager = TextInteractionManager(interactableView: self)
         interactionManager.delegate = self
+        interactionManager.magnifierType = magnifierType
         
         layer.contentsScale = REText.screenScale
         contentMode = .redraw
