@@ -1347,9 +1347,9 @@ extension RELabel: @preconcurrency AsyncLayerDelegate {
                         for info in renderer.attachmentsInfo {
                             switch info.attachment.content {
                             case .view(let view):
-                                attachmentViews.append(view)
+                                self.attachmentViews.append(view)
                             case .layer(let contentLayer):
-                                attachmentLayers.append(contentLayer)
+                                self.attachmentLayers.append(contentLayer)
                             default:
                                 break
                             }
