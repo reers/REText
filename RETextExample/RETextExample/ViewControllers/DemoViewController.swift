@@ -36,6 +36,7 @@ class DemoViewController: UITableViewController {
         addCell("Text Link", className: "TextLinkViewController")
         addCell("Text Selection", className: "TextSelectionViewController")
         addCell("Size Calculation", className: "TextSizeCalculationViewController")
+        addCell("Text Parser (Emoticon)", className: "TextEmoticonViewController")
         addCell("Attributes Separation", className: "TextAttributesSeparationViewController")
         addCell("Features Comparison", className: "FeaturesComparisonViewController", storyboardID: "FeaturesComparison")
     }
