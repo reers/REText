@@ -17,14 +17,14 @@ REText 是一个高性能的文本框架，完全基于 Swift 构建，基于 [M
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/reers/REText.git", from: "0.1.0")
+    .package(url: "https://github.com/reers/REText.git", from: "0.1.1")
 ]
 ```
 
 ### CocoaPods
 
 ```ruby
-pod 'REText', '~> 0.1.0'
+pod 'REText', '~> 0.1.1'
 ```
 
 ## 快速开始
