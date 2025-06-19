@@ -22,15 +22,50 @@
 
 import UIKit
 
+/// The TextParser protocol declares the required method for text views and labels
+/// to modify the text during editing and rendering.
+///
+/// You can implement this protocol to add features like:
+/// - Code syntax highlighting
+/// - Emoticon/emoji replacement
+/// - Markdown parsing
+/// - Custom text formatting
+/// - URL detection and styling
+///
+/// The parser will be called automatically when text content changes, allowing
+/// real-time text transformation and styling.
+///
+/// Example implementations might include:
+/// - `MarkdownTextParser` for markdown syntax highlighting
+/// - `EmoticonTextParser` for emoji replacement
+/// - `CodeHighlightParser` for programming language syntax highlighting
 public protocol TextParser: AnyObject {
     
-    /// Parse text.
+    /// Called when text content changes in the associated text view or label.
+    ///
+    /// This method provides an opportunity to analyze and modify the text content,
+    /// apply custom attributes, or perform content replacement. The implementation
+    /// should be efficient as it may be called frequently during text editing.
+    ///
     /// - Parameters:
-    ///   - text: The original attributed string. This method may parse the text and
-    ///   change the text attributes or content.
-    ///   - selectedRange: Current selected range in `text`.
-    ///   This method should correct the range if the text content is changed. If there's
-    ///   no selected range, this value is nil.
-    /// - Returns: If the 'text' is modified in this method, returns `true`, otherwise returns `false`.
+    ///   - text: The mutable attributed string to be parsed and potentially modified.
+    ///           This contains the current text content with existing attributes.
+    ///           Pass `nil` if no text is available.
+    ///   - selectedRange: A pointer to the current text selection range.
+    ///                   If the text content is modified, this method should update
+    ///                   the range accordingly to maintain proper cursor/selection position.
+    ///                   Pass `nil` if no selection exists (e.g., in read-only labels).
+    ///
+    /// - Returns: `true` if the text content or attributes were modified during parsing,
+    ///           `false` if no changes were made. This helps the text system optimize
+    ///           redraws and notifications.
+    ///
+    /// - Note: This method should be implemented efficiently as it may be called
+    ///         frequently during text editing. Consider caching parsed results
+    ///         when appropriate.
+    ///
+    /// - Important: When modifying text content (not just attributes), ensure the
+    ///             `selectedRange` is properly adjusted to reflect the new text length
+    ///             and maintain user's intended cursor position.
     func parseText(_ text: NSMutableAttributedString?, selectedRange: UnsafeMutablePointer<NSRange>?) -> Bool
 }

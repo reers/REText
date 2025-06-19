@@ -232,6 +232,8 @@ open class RELabel: UIView {
     
     /// The underlying attributed string drawn by the label.
     /// NOTE: If set, the label ignores other properties.
+    ///
+    /// - Note: When a new value is set, it will be processed by the `textParser` if one is provided.
     open var attributedText: NSAttributedString? {
         get {
             return _attributedText
@@ -241,7 +243,24 @@ open class RELabel: UIView {
                 return
             }
             _attributedText = newValue?.copy() as? NSAttributedString
-            invalidate()
+            // Apply parser and invalidate layout to reflect changes.
+            applyParserAndInvalidate()
+        }
+    }
+    
+    /// When `text` or `attributedText` is changed, the parser will be called to modify the text.
+    /// It can be used to add code highlighting or emoticon replacement to text view.
+    /// The default value is nil.
+    ///
+    /// - Note: Setting a new parser will cause the label's current text to be re-parsed.
+    open var textParser: TextParser? {
+        didSet {
+            // Avoid reprocessing if the parser instance hasn't changed.
+            if let old = oldValue as? AnyObject, let new = textParser as? AnyObject, old === new {
+                return
+            }
+            // Re-apply the new parser to the existing text.
+            applyParserAndInvalidate()
         }
     }
     
@@ -802,6 +821,29 @@ open class RELabel: UIView {
             invalidateTruncationAttributedText()
             invalidateIntrinsicContentSize()
         }
+    }
+    
+    /// This is the central method for applying the text parser.
+    /// It's called whenever the text or the parser itself changes.
+    private func applyParserAndInvalidate() {
+        guard let parser = textParser, let currentText = _attributedText else {
+            // If there's no parser or no text, just invalidate to reflect
+            // the change that triggered this call (e.g., text being set to nil).
+            invalidate()
+            return
+        }
+
+        let mutableText = NSMutableAttributedString(attributedString: currentText)
+        // The parser may modify the selectedRange, but we are passing nil for now
+        // as per the common use case.
+        if parser.parseText(mutableText, selectedRange: nil) {
+            // The parser modified the text. Update the backing attributed string.
+            // This avoids triggering the `attributedText` setter again.
+            _attributedText = mutableText.copy() as? NSAttributedString
+        }
+        
+        // Always invalidate after a potential text change to update the display.
+        invalidate()
     }
     
     private var renderAttributes: TextRenderAttributes {
