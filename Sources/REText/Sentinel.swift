@@ -65,7 +65,7 @@ public final class Sentinel: @unchecked Sendable {
     private let implementation: LockCounterImpl
     #endif
 
-    init() {
+    public init() {
         #if canImport(Synchronization)
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
             self.implementation = AtomicCounterImpl()
@@ -78,7 +78,7 @@ public final class Sentinel: @unchecked Sendable {
     }
     
     @discardableResult
-    func increase() -> Int64 {
+    public func increase() -> Int64 {
         #if canImport(Synchronization)
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
             return (implementation as! AtomicCounterImpl).increase()
@@ -90,7 +90,7 @@ public final class Sentinel: @unchecked Sendable {
         #endif
     }
 
-    var value: Int64 {
+    public var value: Int64 {
         #if canImport(Synchronization)
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
             return (implementation as! AtomicCounterImpl).value
