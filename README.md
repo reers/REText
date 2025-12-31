@@ -19,14 +19,14 @@ REText is a high-performance text framework built from the ground up in Swift, i
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/reers/REText.git", from: "0.1.1")
+    .package(url: "https://github.com/reers/REText.git", from: "0.1.2")
 ]
 ```
 
 ### CocoaPods
 
 ```ruby
-pod 'REText', '~> 0.1.1'
+pod 'REText', '~> 0.1.2'
 ```
 
 ## Quick Start
