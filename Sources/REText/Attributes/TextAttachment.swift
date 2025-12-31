@@ -84,7 +84,10 @@ open class TextAttachment: NSTextAttachment, @unchecked Sendable {
     open var content: Content? {
         didSet {
             guard content != oldValue else { return }
-            syncOnMain { contentSize = content?.size ?? .zero }
+            nonisolated(unsafe) let unsafeSelf = self
+            MainActor.assumeIsolated {
+                unsafeSelf.contentSize = unsafeSelf.content?.size ?? .zero
+            }
         }
     }
     
@@ -164,12 +167,13 @@ open class TextAttachment: NSTextAttachment, @unchecked Sendable {
             }
             
         case .layer(let layer):
-            syncOnMain {
-                if layer.frame != rect {
-                    layer.frame = rect
+            nonisolated(unsafe) let unsafeLayer = layer
+            MainActor.assumeIsolated {
+                if unsafeLayer.frame != rect {
+                    unsafeLayer.frame = rect
                 }
-                if let textView, layer.superlayer != textView.layer {
-                    textView.layer.addSublayer(layer)
+                if let textView, unsafeLayer.superlayer != textView.layer {
+                    textView.layer.addSublayer(unsafeLayer)
                 }
             }
         default:

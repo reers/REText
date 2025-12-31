@@ -342,7 +342,11 @@ public class AsyncLayer: CALayer, @unchecked Sendable {
              let isCancelled: @Sendable () -> Bool = { value != sentinel.value }
              let backgroundColor = (opaque && self.backgroundColor != nil) ? self.backgroundColor : nil
              
-             Task(priority: .high) {
+             // Capture self as nonisolated(unsafe) to avoid data race warnings
+             // This is safe because we only access self on the MainActor
+             nonisolated(unsafe) let unsafeSelf = self
+             
+             Task(priority: .high) { @Sendable in
                  await RenderActorPool.next().render {
                      if isCancelled() {
                          _ = backgroundColor
@@ -374,16 +378,16 @@ public class AsyncLayer: CALayer, @unchecked Sendable {
                      
                      if isCancelled() {
                          await MainActor.run {
-                             task.didDisplay?(self, false)
+                             task.didDisplay?(unsafeSelf, false)
                          }
                          return
                      }
                      await MainActor.run {
                          if isCancelled() {
-                             task.didDisplay?(self, false)
+                             task.didDisplay?(unsafeSelf, false)
                          } else {
-                             self.contents = image.cgImage
-                             task.didDisplay?(self, true)
+                             unsafeSelf.contents = image.cgImage
+                             task.didDisplay?(unsafeSelf, true)
                          }
                      }
                  }
