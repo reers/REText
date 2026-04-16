@@ -79,7 +79,12 @@ public final class TextDebugOption: @unchecked Sendable {
     }
 
     /// Lock for protecting shared state access.
-    private nonisolated(unsafe) static var sharedDebugLock = os_unfair_lock()
+    /// Heap-allocated to avoid undefined behavior from Swift's potential bitwise copying of value types.
+    private nonisolated(unsafe) static let sharedDebugLock: os_unfair_lock_t = {
+        let lock = os_unfair_lock_t.allocate(capacity: 1)
+        lock.initialize(to: os_unfair_lock())
+        return lock
+    }()
 
     /// Stores weak references to the debug targets using NSHashTable.weakObjects().
     /// This replaces the original C implementation's CFMutableSetRef + custom callbacks,
@@ -128,8 +133,8 @@ public final class TextDebugOption: @unchecked Sendable {
     ///
     /// - Parameter target: A debug target object conforming to the TextDebugTarget protocol.
     public static func addDebugTarget(_ target: TextDebugTarget) {
-        os_unfair_lock_lock(&sharedDebugLock)
-        defer { os_unfair_lock_unlock(&sharedDebugLock) }
+        os_unfair_lock_lock(sharedDebugLock)
+        defer { os_unfair_lock_unlock(sharedDebugLock) }
         let value = Unmanaged.passUnretained(target as AnyObject).toOpaque()
         CFSetAddValue(sharedDebugTargets, value)
     }
@@ -138,8 +143,8 @@ public final class TextDebugOption: @unchecked Sendable {
     ///
     /// - Parameter target: The debug target object to remove.
     public static func removeDebugTarget(_ target: TextDebugTarget) {
-        os_unfair_lock_lock(&sharedDebugLock)
-        defer { os_unfair_lock_unlock(&sharedDebugLock) }
+        os_unfair_lock_lock(sharedDebugLock)
+        defer { os_unfair_lock_unlock(sharedDebugLock) }
         let value = Unmanaged.passUnretained(target as AnyObject).toOpaque()
         CFSetRemoveValue(sharedDebugTargets, value)
     }
@@ -151,15 +156,15 @@ public final class TextDebugOption: @unchecked Sendable {
     /// (even `nil`), it updates the internal storage and notifies all added debug targets.
     public static var shared: TextDebugOption? {
         get {
-            os_unfair_lock_lock(&sharedDebugLock)
-            defer { os_unfair_lock_unlock(&sharedDebugLock) }
+            os_unfair_lock_lock(sharedDebugLock)
+            defer { os_unfair_lock_unlock(sharedDebugLock) }
             return _shared
         }
         set {
             assert(Thread.isMainThread, "TextDebugOption.shared must be set on the main thread.")
 
-            os_unfair_lock_lock(&sharedDebugLock)
-            defer { os_unfair_lock_unlock(&sharedDebugLock) }
+            os_unfair_lock_lock(sharedDebugLock)
+            defer { os_unfair_lock_unlock(sharedDebugLock) }
             _shared = newValue?.copy()
             CFSetApplyFunction(sharedDebugTargets, applier, nil)
         }

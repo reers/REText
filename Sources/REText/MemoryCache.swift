@@ -151,15 +151,15 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     /// The number of objects in the cache (read-only)
     public var totalCount: Int {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         return linkedList.totalCount
     }
     
     /// The total cost of objects in the cache (read-only).
     public var totalCost: Int {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         return linkedList.totalCost
     }
     
@@ -200,13 +200,13 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     /// background thread. Default is false.
     public var releaseOnMainThread: Bool {
         get {
-            os_unfair_lock_lock(&lock)
-            defer { os_unfair_lock_unlock(&lock) }
+            os_unfair_lock_lock(lock)
+            defer { os_unfair_lock_unlock(lock) }
             return linkedList.releaseOnMainThread
         }
         set {
-            os_unfair_lock_lock(&lock)
-            defer { os_unfair_lock_unlock(&lock) }
+            os_unfair_lock_lock(lock)
+            defer { os_unfair_lock_unlock(lock) }
             linkedList.releaseOnMainThread = newValue
         }
     }
@@ -216,19 +216,23 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     /// Default is true.
     public var releaseAsynchronously: Bool {
         get {
-            os_unfair_lock_lock(&lock)
-            defer { os_unfair_lock_unlock(&lock) }
+            os_unfair_lock_lock(lock)
+            defer { os_unfair_lock_unlock(lock) }
             return linkedList.releaseAsynchronously
         }
         set {
-            os_unfair_lock_lock(&lock)
-            defer { os_unfair_lock_unlock(&lock) }
+            os_unfair_lock_lock(lock)
+            defer { os_unfair_lock_unlock(lock) }
             linkedList.releaseAsynchronously = newValue
         }
     }
     
     // MARK: - Private properties
-    private var lock = os_unfair_lock()
+    private let lock: os_unfair_lock_t = {
+        let lock = os_unfair_lock_t.allocate(capacity: 1)
+        lock.initialize(to: os_unfair_lock())
+        return lock
+    }()
     private let linkedList = LinkedList<Key, Value>()
     private let queue: DispatchQueue
     
@@ -259,6 +263,8 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
         NotificationCenter.default.removeObserver(self, name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
         removeAllObjects()
+        lock.deinitialize(count: 1)
+        lock.deallocate()
     }
     
     
@@ -266,15 +272,15 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     /// Returns a Boolean value that indicates whether a given key is in cache.
     public func containsObject(forKey key: Key) -> Bool {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         return linkedList.nodeMap[key] != nil
     }
     
     /// Returns the value associated with a given key.
     public func object(forKey key: Key) -> Value? {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         
         if let node = linkedList.nodeMap[key] {
             node.time = CACurrentMediaTime()
@@ -291,8 +297,8 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
             return
         }
         
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         
         let now = CACurrentMediaTime()
         
@@ -336,8 +342,8 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     /// Removes the value of the specified key in the cache.
     public func removeObject(forKey key: Key) {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         
         if let node = linkedList.nodeMap[key] {
             linkedList.remove(node)
@@ -357,8 +363,8 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     /// Empties the cache immediately.
     public func removeAllObjects() {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         linkedList.removeAll()
     }
     
@@ -430,19 +436,19 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     private func _trimToCost(_ costLimit: Int) {
         var finished = false
-        os_unfair_lock_lock(&lock)
+        os_unfair_lock_lock(lock)
         if costLimit == 0 {
             linkedList.removeAll()
             finished = true
         } else if linkedList.totalCost <= costLimit {
             finished = true
         }
-        os_unfair_lock_unlock(&lock)
+        os_unfair_lock_unlock(lock)
         if finished { return }
         
         var holder: [LinkedListNode<Key, Value>] = []
         while !finished {
-            if os_unfair_lock_trylock(&lock) {
+            if os_unfair_lock_trylock(lock) {
                 if linkedList.totalCost > costLimit {
                     if let node = linkedList.removeTail() {
                         holder.append(node)
@@ -450,7 +456,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 } else {
                     finished = true
                 }
-                os_unfair_lock_unlock(&lock)
+                os_unfair_lock_unlock(lock)
             } else {
                 usleep(10 * 1000)
             }
@@ -467,19 +473,19 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     
     private func _trimToCount(_ countLimit: Int) {
         var finished = false
-        os_unfair_lock_lock(&lock)
+        os_unfair_lock_lock(lock)
         if countLimit == 0 {
             linkedList.removeAll()
             finished = true
         } else if linkedList.totalCount <= countLimit {
             finished = true
         }
-        os_unfair_lock_unlock(&lock)
+        os_unfair_lock_unlock(lock)
         if finished { return }
         
         var holder: [LinkedListNode<Key, Value>] = []
         while !finished {
-            if os_unfair_lock_trylock(&lock) {
+            if os_unfair_lock_trylock(lock) {
                 if linkedList.totalCount > countLimit {
                     if let node = linkedList.removeTail() {
                         holder.append(node)
@@ -487,7 +493,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 } else {
                     finished = true
                 }
-                os_unfair_lock_unlock(&lock)
+                os_unfair_lock_unlock(lock)
             } else {
                 usleep(10 * 1000)
             }
@@ -505,19 +511,19 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
     private func _trimToAge(_ ageLimit: TimeInterval) {
         var finished = false
         let now = CACurrentMediaTime()
-        os_unfair_lock_lock(&lock)
+        os_unfair_lock_lock(lock)
         if ageLimit <= 0 {
             linkedList.removeAll()
             finished = true
         } else if linkedList.tail == nil || (now - linkedList.tail!.time) <= ageLimit {
             finished = true
         }
-        os_unfair_lock_unlock(&lock)
+        os_unfair_lock_unlock(lock)
         if finished { return }
         
         var holder: [LinkedListNode<Key, Value>] = []
         while !finished {
-            if os_unfair_lock_trylock(&lock) {
+            if os_unfair_lock_trylock(lock) {
                 if let tail = linkedList.tail, (now - tail.time) > ageLimit {
                     if let node = linkedList.removeTail() {
                         holder.append(node)
@@ -525,7 +531,7 @@ public final class MemoryCache<Key: Hashable, Value>: @unchecked Sendable {
                 } else {
                     finished = true
                 }
-                os_unfair_lock_unlock(&lock)
+                os_unfair_lock_unlock(lock)
             } else {
                 usleep(10 * 1000)
             }

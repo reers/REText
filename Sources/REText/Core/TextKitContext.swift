@@ -39,7 +39,11 @@ final class TextKitContext {
     private var textContainer: NSTextContainer
     
     /// Lock used for all TextKit operations
-    private var lock = os_unfair_lock()
+    private let lock: os_unfair_lock_t = {
+        let lock = os_unfair_lock_t.allocate(capacity: 1)
+        lock.initialize(to: os_unfair_lock())
+        return lock
+    }()
     
     /// Initializes a new TextKit context with the specified parameters.
     ///
@@ -61,8 +65,8 @@ final class TextKitContext {
         textContainer = NSTextContainer(size: .zero)
         
         // Concurrently initialising TextKit components crashes (rdar://18448377) so we use a global lock.
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         
         // Create the TextKit component stack with our default configuration.
         layoutManager = TextLayoutManager()
@@ -93,6 +97,11 @@ final class TextKitContext {
         textStorage.addLayoutManager(layoutManager)
     }
     
+    deinit {
+        lock.deinitialize(count: 1)
+        lock.deallocate()
+    }
+    
     /// All operations on TextKit values MUST occur within this locked context. Simultaneous access (even non-mutative) to
     /// TextKit components may cause crashes.
     ///
@@ -107,8 +116,8 @@ final class TextKitContext {
             _ textContainer: NSTextContainer
         ) -> Void
     ) {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         action(layoutManager, textStorage, textContainer)
     }
 }

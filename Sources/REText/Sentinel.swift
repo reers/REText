@@ -41,18 +41,27 @@ private final class AtomicCounterImpl {
 
 private final class LockCounterImpl {
     private var counter: Int64 = 0
-    private var lock = os_unfair_lock()
+    private let lock: os_unfair_lock_t = {
+        let lock = os_unfair_lock_t.allocate(capacity: 1)
+        lock.initialize(to: os_unfair_lock())
+        return lock
+    }()
+
+    deinit {
+        lock.deinitialize(count: 1)
+        lock.deallocate()
+    }
 
     func increase() -> Int64 {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         counter += 1
         return counter
     }
 
     var value: Int64 {
-        os_unfair_lock_lock(&lock)
-        defer { os_unfair_lock_unlock(&lock) }
+        os_unfair_lock_lock(lock)
+        defer { os_unfair_lock_unlock(lock) }
         return counter
     }
 }
